@@ -1,0 +1,75 @@
+﻿@page "/"
+
+<PageTitle>Home</PageTitle>
+
+<MudContainer Class="mt-16">
+    <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Create your password on the fly</MudText>
+    <MudGrid Class="mt-8">
+        <MudItem md="12">
+            <MudCard Elevation="25" Class="rounded-lg pb-4">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h5" Align="Align.Center">Choose your parameters</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudSlider @bind-Value="@_passwordLength" Step=1 Min="5" Max="50" Variant="Variant.Filled">Password Length (@_passwordLength)</MudSlider>
+                    <MudSwitch @bind-Checked="@_includeUppercase" Label="Include Uppercase" Color="Color.Info"/>
+                    <MudSwitch @bind-Checked="@_includeNumbers" Label="Include Numbers" Color="Color.Info"/>
+                    <MudSwitch @bind-Checked="@_includeSpecialChars" Label="Include Special Chars" Color="Color.Info"/>
+                </MudCardContent>
+                <MudCardActions Class="d-flex justify-center">
+                    <MudButton OnClick="GeneratePassword" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" Style="width:50%;">Generate</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        
+        @if (_generatedPassword != "")
+        {
+            <MudItem md="12">
+                <MudCard Elevation="25" Class="rounded-lg pb-4">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h3" Align="Align.Center">Result</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText Typo="Typo.h5" ReadOnly="true" Align="Align.Center">@_generatedPassword</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>   
+        }
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private int _passwordLength = 12;
+    private bool _includeUppercase = true;
+    private bool _includeNumbers = true;
+    private bool _includeSpecialChars = false;
+    private string _generatedPassword = "";
+
+    private const string UppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private const string LowercaseChars = "abcdefghijklmnopqrstuvwxyz";
+    private const string NumberChars = "0123456789";
+    private const string SpecialChars = "!@#$%^&*()_+-=[]{}|;:,.<>?";
+
+    private void GeneratePassword()
+    {
+        var chars = LowercaseChars;
+        if (_includeUppercase)
+            chars += UppercaseChars;
+        if (_includeNumbers)
+            chars += NumberChars;
+        if (_includeSpecialChars)
+            chars += SpecialChars;
+
+        var random = new Random();
+        var result = new string(
+            Enumerable.Repeat(chars, _passwordLength)
+                .Select(s => s[random.Next(s.Length)])
+                .ToArray());
+
+        _generatedPassword = result;
+    }
+}
