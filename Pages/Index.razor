@@ -1,5 +1,8 @@
 ﻿@page "/"
 
+@inject IJSRuntime JsRuntime
+@inject ISnackbar Snackbar
+
 <PageTitle>Home</PageTitle>
 
 <MudContainer Class="mt-16">
@@ -14,16 +17,16 @@
                 </MudCardHeader>
                 <MudCardContent>
                     <MudSlider @bind-Value="@_passwordLength" Step=1 Min="5" Max="50" Variant="Variant.Filled">Password Length (@_passwordLength)</MudSlider>
-                    <MudSwitch @bind-Checked="@_includeUppercase" Label="Include Uppercase" Color="Color.Info"/>
-                    <MudSwitch @bind-Checked="@_includeNumbers" Label="Include Numbers" Color="Color.Info"/>
-                    <MudSwitch @bind-Checked="@_includeSpecialChars" Label="Include Special Chars" Color="Color.Info"/>
+                    <MudSwitch @bind-Checked="@_includeUppercase" Label="Include Uppercase" Color="Color.Info" />
+                    <MudSwitch @bind-Checked="@_includeNumbers" Label="Include Numbers" Color="Color.Info" />
+                    <MudSwitch @bind-Checked="@_includeSpecialChars" Label="Include Special Chars" Color="Color.Info" />
                 </MudCardContent>
                 <MudCardActions Class="d-flex justify-center">
                     <MudButton OnClick="GeneratePassword" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" Style="width:50%;">Generate</MudButton>
                 </MudCardActions>
             </MudCard>
         </MudItem>
-        
+
         @if (_generatedPassword != "")
         {
             <MudItem md="12">
@@ -36,8 +39,18 @@
                     <MudCardContent>
                         <MudText Typo="Typo.h5" ReadOnly="true" Align="Align.Center">@_generatedPassword</MudText>
                     </MudCardContent>
+                    <MudCardActions Class="d-flex justify-center">
+                        <MudButton OnClick="CopyToClipboardAsync"
+                                   Variant="Variant.Outlined"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Filled.ContentCopy"
+                                   Size="Size.Large"
+                                   Style="width:50%;">
+                            Copy
+                        </MudButton>
+                    </MudCardActions>
                 </MudCard>
-            </MudItem>   
+            </MudItem>
         }
     </MudGrid>
 </MudContainer>
@@ -71,5 +84,23 @@
                 .ToArray());
 
         _generatedPassword = result;
+    }
+
+    private async Task CopyToClipboardAsync()
+    {
+        try
+        {
+            await JsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", _generatedPassword);
+            Snackbar.Add("Password copied!", Severity.Success);
+        }
+        catch
+        {
+            Snackbar.Add("Error copying password. Please, try again or copy the value manually", Severity.Warning);
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomRight;
     }
 }
