@@ -1,7 +1,7 @@
 ﻿@page "/"
 
-@inject IJSRuntime JsRuntime
 @inject ISnackbar Snackbar
+@inject IClipboardService ClipboardService 
 
 <PageTitle>Home</PageTitle>
 
@@ -43,7 +43,7 @@
                         <MudButton OnClick="CopyToClipboardAsync"
                                    Variant="Variant.Outlined"
                                    Color="Color.Primary"
-                                   StartIcon="@Icons.Filled.ContentCopy"
+                                   StartIcon="@Icons.Material.Filled.ContentCopy"
                                    Size="Size.Large"
                                    Style="width:50%;">
                             Copy
@@ -90,7 +90,7 @@
     {
         try
         {
-            await JsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", _generatedPassword);
+            await ClipboardService.CopyToClipboard(_generatedPassword);
             Snackbar.Add("Password copied!", Severity.Success);
         }
         catch
