@@ -1,0 +1,28 @@
+﻿@using System.Globalization
+@using Passwordify.Localizer;
+@inject ILocalStorageService _localStorage
+@inject NavigationManager _navigationManager
+
+<MudMenu Icon="@Icons.Material.Filled.Language" Color="Color.Inherit" AnchorOrigin="Origin.BottomCenter">
+    @foreach (var culture in LocalizerHelper.SupportedCultures)
+    {
+    <MudMenuItem  OnClick="() => OnCultureChanged(culture.Name)">@culture.DisplayName</MudMenuItem>
+    }
+</MudMenu>
+
+@code {
+    private string CurrentCulture { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        CurrentCulture = CultureInfo.CurrentCulture.Name;
+
+        await base.OnInitializedAsync();
+    }
+
+    public void OnCultureChanged(string culture)
+    {
+        _localStorage.SetItemAsync<string>("culture", culture);
+        _navigationManager.NavigateTo(_navigationManager.Uri, forceLoad: true);
+    }
+}
