@@ -1,14 +1,14 @@
 ﻿@page "/"
 
 @inject ISnackbar Snackbar
-@inject IClipboardService ClipboardService 
+@inject IClipboardService ClipboardService
 
 <PageTitle>Home</PageTitle>
 
 <MudContainer Class="mt-16">
     <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Create your password on the fly</MudText>
     <MudGrid Class="mt-8">
-        <MudItem md="12">
+        <MudItem md="12" xs="12">
             <MudCard Elevation="25" Class="rounded-lg pb-4">
                 <MudCardHeader>
                     <CardHeaderContent>
@@ -29,7 +29,7 @@
 
         @if (_generatedPassword != "")
         {
-            <MudItem md="12">
+            <MudItem md="12" xs="12">
                 <MudCard Elevation="25" Class="rounded-lg pb-4">
                     <MudCardHeader>
                         <CardHeaderContent>
@@ -37,7 +37,7 @@
                         </CardHeaderContent>
                     </MudCardHeader>
                     <MudCardContent>
-                        <MudText Typo="Typo.h5" ReadOnly="true" Align="Align.Center">@_generatedPassword</MudText>
+                        <MudText Style="overflow-wrap: break-word;" Typo="Typo.h5" ReadOnly="true" Align="Align.Center">@_generatedPassword</MudText>
                     </MudCardContent>
                     <MudCardActions Class="d-flex justify-center">
                         <MudButton OnClick="CopyToClipboardAsync"
