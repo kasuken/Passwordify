@@ -1,0 +1,71 @@
+---
+import Logo from './Logo.astro';
+
+const groups = [
+  {
+    title: 'Tools',
+    links: [
+      { href: '/tools/password-strength', label: 'Strength analyzer' },
+      { href: '/tools/breach-check', label: 'Breach check' },
+      { href: '/tools/generator', label: 'Password generator' },
+    ],
+  },
+  {
+    title: 'Developers',
+    links: [
+      { href: '/developers', label: 'API overview' },
+      { href: '/docs', label: 'API reference' },
+      { href: '/pricing', label: 'Pricing' },
+    ],
+  },
+  {
+    title: 'Company',
+    links: [
+      { href: '/privacy', label: 'Privacy' },
+      { href: 'https://github.com/kasuken/Passwordify', label: 'GitHub', external: true },
+      { href: 'https://haveibeenpwned.com/Passwords', label: 'Powered by HIBP', external: true },
+    ],
+  },
+];
+const year = new Date().getFullYear();
+---
+
+<footer class="mt-24 border-t border-line bg-surface/40">
+  <div class="container-x grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+    <div class="max-w-xs">
+      <Logo size={26} />
+      <p class="mt-4 text-sm leading-relaxed text-muted">
+        Privacy-first password security tools and a developer API. The free tools
+        run entirely in your browser — passwords never touch our servers.
+      </p>
+    </div>
+    {
+      groups.map((g) => (
+        <div>
+          <h3 class="eyebrow mb-4">{g.title}</h3>
+          <ul class="flex flex-col gap-2.5">
+            {g.links.map((l) => (
+              <li>
+                <a
+                  href={l.href}
+                  class="text-sm text-muted transition-colors hover:text-ink"
+                  {...('external' in l && l.external ? { target: '_blank', rel: 'noopener' } : {})}
+                >
+                  {l.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+  </div>
+  <div class="border-t border-line">
+    <div class="container-x flex flex-col items-center justify-between gap-3 py-6 text-xs text-faint sm:flex-row">
+      <p>© {year} Passwordify. All rights reserved.</p>
+      <p class="font-mono">
+        Built with Astro · zxcvbn · Have I Been Pwned
+      </p>
+    </div>
+  </div>
+</footer>

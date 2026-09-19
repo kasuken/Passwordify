@@ -1,0 +1,283 @@
+---
+import Base from '../layouts/Base.astro';
+import ToolIcon from '../components/ToolIcon.astro';
+
+const plans = [
+  {
+    name: 'Free',
+    price: '$0',
+    suffix: '/mo',
+    tagline: 'For learning, prototypes, and personal projects.',
+    features: ['Unlimited browser tools', '1,000 API requests /mo', '1 API key', 'Community support'],
+    cta: { label: 'Start for free', href: '/developers' },
+    highlight: false,
+  },
+  {
+    name: 'Pro',
+    price: '$19',
+    suffix: '/mo',
+    tagline: 'For production apps validating real signups.',
+    features: [
+      '100,000 API requests /mo',
+      '5 API keys',
+      'Strength, breach, validate & generate',
+      'Email support',
+      '99.9% uptime SLA',
+    ],
+    cta: { label: 'Start with Pro', href: '/developers' },
+    highlight: true,
+  },
+  {
+    name: 'Scale',
+    price: '$99',
+    suffix: '/mo',
+    tagline: 'For high-traffic products and platforms.',
+    features: [
+      '1,000,000 API requests /mo',
+      'Unlimited API keys',
+      'Priority support',
+      'Custom rate limits',
+      'Formal uptime SLA',
+    ],
+    cta: { label: 'Start with Scale', href: '/developers' },
+    highlight: false,
+  },
+  {
+    name: 'Enterprise',
+    price: 'Contact',
+    suffix: '',
+    tagline: 'For regulated orgs that need to self-host.',
+    features: [
+      'Self-host / on-prem breach corpus',
+      'SSO (SAML / OIDC)',
+      'DPA & custom contracts',
+      'Volume pricing',
+    ],
+    cta: { label: 'Contact sales', href: 'mailto:hello@passwordify.xyz' },
+    highlight: false,
+  },
+];
+
+// true = check icon, false = em dash, string = literal cell value
+const comparison: { label: string; values: (string | boolean)[] }[] = [
+  { label: 'Monthly API requests', values: ['1,000', '100,000', '1,000,000', 'Custom'] },
+  { label: 'API keys', values: ['1', '5', 'Unlimited', 'Unlimited'] },
+  { label: 'Strength endpoint', values: [true, true, true, true] },
+  { label: 'Breach endpoint', values: [true, true, true, true] },
+  { label: 'Validate endpoint', values: [true, true, true, true] },
+  { label: 'Generate endpoint', values: [true, true, true, true] },
+  { label: 'Support level', values: ['Community', 'Email', 'Priority', 'Dedicated'] },
+  { label: 'Uptime SLA', values: [false, '99.9%', '99.95%', 'Custom (contract)'] },
+  { label: 'Self-hosting', values: [false, false, false, true] },
+];
+
+const faqs = [
+  {
+    q: 'Are the browser tools really free?',
+    a: 'Yes — the strength analyzer, breach checker, and generator are unlimited and free on every plan, including Free. There is no account, no trial period, and no plan to run out of.',
+  },
+  {
+    q: 'What counts as a request?',
+    a: 'One call to any /v1 endpoint (strength, breach, validate, or generate) is one request, regardless of payload size. Requesting several passwords in a single /v1/generate call still counts as one request.',
+  },
+  {
+    q: "Do you store passwords sent to the API?",
+    a: 'No. Passwords are processed in memory for the duration of the request and are never logged, cached, or persisted — on any plan, including Enterprise self-hosted deployments.',
+  },
+  {
+    q: 'Can I self-host?',
+    a: 'Yes, on Enterprise. Self-hosted deployments run your own breach corpus on-prem or in your cloud, which is useful for air-gapped environments or strict data-residency requirements.',
+  },
+  {
+    q: 'How do breach checks stay private?',
+    a: 'k-anonymity. Your browser hashes the password with SHA-1 locally and sends only the first 5 hex characters of the hash. The API returns every suffix that shares that prefix, and the match happens on-device — so it never sees the full hash or the password.',
+  },
+];
+---
+
+<Base
+  title="Pricing — Passwordify"
+  description="Usage-based pricing for the Passwordify API. Free browser tools forever, paid plans for API volume, and a self-hosted Enterprise tier."
+>
+  <!-- ================= HEADER ================= -->
+  <section class="section pb-0">
+    <div class="container-x">
+      <div class="max-w-2xl">
+        <span class="eyebrow">
+          <span class="inline-block h-1.5 w-1.5 rounded-full bg-accent"></span>
+          Pricing
+        </span>
+        <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+          Simple, usage-based pricing
+        </h2>
+        <p class="mt-4 text-lg leading-relaxed text-muted">
+          Pay for API volume, not features. The strength analyzer, breach checker, and
+          generator in your browser are free — unlimited, no account required, no
+          expiry — on every plan, forever.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PLANS ================= -->
+  <section class="section">
+    <div class="container-x">
+      <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {
+          plans.map((p) => (
+            <div
+              class={`card relative flex flex-col p-6 ${
+                p.highlight ? 'border-accent lg:-translate-y-2' : ''
+              }`}
+              style={p.highlight ? 'box-shadow: var(--shadow-lg);' : ''}
+            >
+              {p.highlight && (
+                <span
+                  class="pill absolute -top-3 left-1/2 -translate-x-1/2 border-0"
+                  style="background: var(--accent); color: var(--accent-contrast);"
+                >
+                  Most popular
+                </span>
+              )}
+              <h3 class="text-lg font-semibold">{p.name}</h3>
+              <p class="mt-1 text-sm leading-relaxed text-muted">{p.tagline}</p>
+              <p class="mt-5 flex items-baseline gap-1">
+                <span class="text-3xl font-semibold tracking-tight tnum">{p.price}</span>
+                {p.suffix && <span class="text-sm text-muted">{p.suffix}</span>}
+              </p>
+              <ul class="mt-6 flex-1 space-y-3">
+                {p.features.map((f) => (
+                  <li class="flex items-start gap-2.5 text-sm text-muted">
+                    <span class="mt-0.5 text-accent">
+                      <ToolIcon name="check" size={16} />
+                    </span>
+                    <span>{f}</span>
+                  </li>
+                ))}
+              </ul>
+              <a
+                href={p.cta.href}
+                class={`btn mt-7 w-full ${p.highlight ? 'btn-primary' : 'btn-secondary'}`}
+              >
+                {p.cta.label}
+              </a>
+            </div>
+          ))
+        }
+      </div>
+
+      <p class="mt-8 text-center text-sm text-muted">
+        Pro and Scale include headroom for spikes: usage beyond your monthly quota is
+        billed at <span class="chip-mono">$1 / additional 10,000 requests</span> — no
+        hard cutoff, no forced upgrade.
+      </p>
+    </div>
+  </section>
+
+  <!-- ================= COMPARISON TABLE ================= -->
+  <section class="section border-t border-line">
+    <div class="container-x">
+      <div class="max-w-2xl">
+        <span class="eyebrow">Compare plans</span>
+        <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+          Every plan, side by side.
+        </h2>
+      </div>
+
+      <div class="mt-10 overflow-x-auto rounded-[var(--radius-lg)] border border-line">
+        <table class="w-full min-w-[640px] border-collapse text-sm">
+          <thead>
+            <tr class="border-b border-line bg-surface-2">
+              <th class="px-5 py-3 text-left font-medium text-muted">Feature</th>
+              {plans.map((p) => (
+                <th class="px-5 py-3 text-left font-semibold text-ink">{p.name}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {
+              comparison.map((row, i) => (
+                <tr class={i % 2 === 1 ? 'bg-surface-2/40' : ''}>
+                  <th class="border-t border-line px-5 py-3 text-left font-medium text-ink">
+                    {row.label}
+                  </th>
+                  {row.values.map((v) => (
+                    <td class="border-t border-line px-5 py-3 text-muted">
+                      {v === true ? (
+                        <span class="text-accent">
+                          <ToolIcon name="check" size={16} />
+                        </span>
+                      ) : v === false ? (
+                        <span aria-hidden="true">&mdash;</span>
+                      ) : (
+                        <span class="tnum">{v}</span>
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FAQ ================= -->
+  <section class="section border-t border-line">
+    <div class="container-x">
+      <div class="max-w-2xl">
+        <span class="eyebrow">FAQ</span>
+        <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+          Questions, answered.
+        </h2>
+      </div>
+
+      <div class="mt-10 max-w-3xl divide-y divide-[var(--border)] overflow-hidden rounded-[var(--radius-md)] border border-line">
+        {
+          faqs.map((f) => (
+            <details class="group bg-surface open:bg-surface-2/50">
+              <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold text-ink">
+                {f.q}
+                <svg
+                  class="h-4 w-4 shrink-0 text-muted transition-transform duration-200 group-open:rotate-45"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+              </summary>
+              <p class="px-5 pb-4 text-sm leading-relaxed text-muted">{f.a}</p>
+            </details>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CTA ================= -->
+  <section class="section pt-0">
+    <div class="container-x">
+      <div class="relative overflow-hidden rounded-[var(--radius-xl)] border border-line bg-surface p-10 text-center sm:p-16">
+        <div class="glow-accent"></div>
+        <div class="relative">
+          <h2 class="mx-auto max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
+            Still deciding? Start free, upgrade when you need to.
+          </h2>
+          <p class="mx-auto mt-4 max-w-xl text-lg text-muted">
+            Every plan runs the same zxcvbn scoring, k-anonymity breach checks, and
+            NIST 800-63B validation — only the request volume changes.
+          </p>
+          <div class="mt-8 flex flex-wrap justify-center gap-3">
+            <a href="/developers" class="btn btn-primary">Get your API key</a>
+            <a href="/docs" class="btn btn-secondary">Read the docs</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
