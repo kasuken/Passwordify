@@ -1,0 +1,35 @@
+---
+interface Props {
+  /** Pixel size of the square mark. */
+  size?: number;
+  /** Show the "Passwordify" wordmark next to the mark. */
+  wordmark?: boolean;
+  class?: string;
+}
+const { size = 28, wordmark = true, class: className = '' } = Astro.props;
+---
+
+<span class={`inline-flex items-center gap-2.5 ${className}`}>
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 64 64"
+    fill="none"
+    aria-hidden="true"
+    class="shrink-0"
+  >
+    <rect x="2" y="2" width="60" height="60" rx="16" fill="var(--accent)"></rect>
+    <g fill="var(--accent-contrast)" transform="translate(32 32)">
+      <rect x="-4.2" y="-19" width="8.4" height="38" rx="4.2"></rect>
+      <rect x="-4.2" y="-19" width="8.4" height="38" rx="4.2" transform="rotate(60)"></rect>
+      <rect x="-4.2" y="-19" width="8.4" height="38" rx="4.2" transform="rotate(120)"></rect>
+    </g>
+  </svg>
+  {
+    wordmark && (
+      <span class="text-[1.05rem] font-semibold tracking-tight text-ink">
+        Password<span class="text-accent">ify</span>
+      </span>
+    )
+  }
+</span>

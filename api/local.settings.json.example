@@ -1,0 +1,11 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "PASSWORDIFY_API_KEYS": "pk_live_replace_me_1,pk_live_replace_me_2"
+  },
+  "Host": {
+    "CORS": "*"
+  }
+}

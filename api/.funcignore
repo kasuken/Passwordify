@@ -1,0 +1,15 @@
+*.ts
+!dist/**/*.d.ts
+.vscode
+local.settings.json
+local.settings.json.example
+test
+.git*
+.github
+tsconfig.json
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+README.md
+.funcignore
+node_modules/@types
+node_modules/typescript

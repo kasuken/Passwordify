@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Passwordify">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8e74ff"/>
+      <stop offset="1" stop-color="#6a45e8"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#g)"/>
+  <g fill="#ffffff">
+    <!-- six-point asterisk: the masked-password glyph -->
+    <g transform="translate(32 32)">
+      <rect x="-4.2" y="-19" width="8.4" height="38" rx="4.2"/>
+      <rect x="-4.2" y="-19" width="8.4" height="38" rx="4.2" transform="rotate(60)"/>
+      <rect x="-4.2" y="-19" width="8.4" height="38" rx="4.2" transform="rotate(120)"/>
+    </g>
+  </g>
+</svg>

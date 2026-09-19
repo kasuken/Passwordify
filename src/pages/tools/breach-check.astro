@@ -1,0 +1,120 @@
+---
+import Base from '../../layouts/Base.astro';
+import BreachCheck from '../../components/react/BreachCheck.tsx';
+import ToolIcon from '../../components/ToolIcon.astro';
+
+const steps = [
+  ['Hash locally', 'Your password is hashed with SHA-1 inside your browser. The raw password never leaves the page.'],
+  ['Send 5 characters', 'Only the first five hex characters of that hash are sent to the Pwned Passwords API.'],
+  ['Match on device', 'The API returns every hash sharing that prefix. Your browser finds the match — the server never learns which one was yours.'],
+];
+---
+
+<Base
+  title="Password breach check — Passwordify"
+  description="Check if your password has appeared in a data breach, against 900M+ leaked passwords from Have I Been Pwned. Uses k-anonymity — your password never leaves your browser."
+>
+  <section class="relative overflow-hidden border-b border-line">
+    <div class="bg-grid absolute inset-0 opacity-60"></div>
+    <div class="container-x relative py-14 md:py-20">
+      <div class="mx-auto max-w-2xl text-center">
+        <span class="eyebrow justify-center">
+          <ToolIcon name="shield" size={15} /> Breach check
+        </span>
+        <h1 class="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
+          Has your password been breached?
+        </h1>
+        <p class="mt-5 text-lg leading-relaxed text-muted">
+          Check any password against 900M+ credentials exposed in real breaches — using
+          k-anonymity, so your password stays on your device.
+        </p>
+      </div>
+
+      <div class="card mx-auto mt-10 max-w-2xl p-6 shadow-[var(--shadow-lg)] sm:p-8">
+        <BreachCheck client:load />
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container-x">
+      <div class="mx-auto max-w-2xl text-center">
+        <span class="eyebrow justify-center"><ToolIcon name="lock" size={14} /> Privacy by design</span>
+        <h2 class="mt-3 text-3xl font-semibold tracking-tight">
+          How k-anonymity protects you
+        </h2>
+        <p class="mt-4 leading-relaxed text-muted">
+          You should never type a password into a site that sends it away to “check” it.
+          This tool doesn't have to — here's the exact flow.
+        </p>
+      </div>
+
+      <ol class="mx-auto mt-12 grid max-w-4xl gap-5 md:grid-cols-3">
+        {
+          steps.map(([title, body], i) => (
+            <li class="card relative p-6">
+              <span class="font-mono text-sm font-semibold text-accent">0{i + 1}</span>
+              <h3 class="mt-3 text-lg font-semibold">{title}</h3>
+              <p class="mt-2 text-sm leading-relaxed text-muted">{body}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section border-t border-line pt-16">
+    <div class="container-x grid gap-12 lg:grid-cols-2">
+      <div>
+        <h2 class="text-2xl font-semibold tracking-tight">Found in a breach? Do this.</h2>
+        <ul class="mt-5 flex flex-col gap-3 text-muted">
+          {
+            [
+              'Stop using it everywhere. Attackers try leaked passwords across every site (credential stuffing).',
+              'Change it on that account first, then anywhere you reused it.',
+              'Replace it with a long, unique, randomly generated password or passphrase.',
+              'Turn on two-factor authentication — ideally a passkey or an authenticator app.',
+            ].map((t) => (
+              <li class="flex items-start gap-3">
+                <span class="mt-1 text-success"><ToolIcon name="check" size={16} /></span>
+                <span>{t}</span>
+              </li>
+            ))
+          }
+        </ul>
+        <a href="/tools/generator" class="btn btn-primary mt-7">
+          <ToolIcon name="dice" size={17} /> Generate a safe replacement
+        </a>
+      </div>
+      <div class="terminal self-start">
+        <div class="terminal-bar">
+          <span class="terminal-dot"></span><span class="terminal-dot"></span><span class="terminal-dot"></span>
+          <span class="terminal-title">breach.js</span>
+        </div>
+        <div class="terminal-body">
+<code><span class="tok-com">// The whole client-side check, distilled</span>
+<span class="tok-key">const</span> hash <span class="tok-punc">=</span> <span class="tok-fn">sha1</span>(password)<span class="tok-punc">;</span>       <span class="tok-com">// in-browser</span>
+<span class="tok-key">const</span> prefix <span class="tok-punc">=</span> hash.<span class="tok-fn">slice</span>(<span class="tok-num">0</span>, <span class="tok-num">5</span>)<span class="tok-punc">;</span>
+
+<span class="tok-key">await</span> <span class="tok-fn">fetch</span>(<span class="tok-str">`/range/$&#123;prefix&#125;`</span>)<span class="tok-punc">;</span>  <span class="tok-com">// 5 chars only</span>
+<span class="tok-com">// â†’ match the suffix locally. Done.</span></code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section pt-0">
+    <div class="container-x">
+      <div class="card flex flex-col items-center gap-5 p-10 text-center sm:flex-row sm:justify-between sm:text-left">
+        <div>
+          <h2 class="text-2xl font-semibold tracking-tight">Screen breached passwords at signup</h2>
+          <p class="mt-2 text-muted">The <span class="chip-mono">/v1/breach</span> endpoint does this k-anonymity check server-side.</p>
+        </div>
+        <div class="flex flex-shrink-0 gap-3">
+          <a href="/developers" class="btn btn-primary">Explore the API</a>
+          <a href="/docs" class="btn btn-secondary">Docs</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>

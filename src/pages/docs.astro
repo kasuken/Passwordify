@@ -1,0 +1,884 @@
+---
+import Base from '../layouts/Base.astro';
+import ToolIcon from '../components/ToolIcon.astro';
+
+const navGroups = [
+  {
+    title: 'Getting started',
+    items: [
+      { href: '#introduction', label: 'Introduction' },
+      { href: '#authentication', label: 'Authentication' },
+      { href: '#rate-limits', label: 'Rate limits' },
+      { href: '#errors', label: 'Errors' },
+    ],
+  },
+  {
+    title: 'Endpoints',
+    items: [
+      { href: '#strength', label: 'POST /v1/strength' },
+      { href: '#breach', label: 'POST /v1/breach' },
+      { href: '#validate', label: 'POST /v1/validate' },
+      { href: '#generate', label: 'POST /v1/generate' },
+    ],
+  },
+  {
+    title: 'Guides',
+    items: [{ href: '#code-examples', label: 'Code examples' }],
+  },
+];
+
+const badge = 'inline-flex items-center rounded-[var(--radius-xs)] border border-line bg-surface-2 px-2 py-0.5 font-mono text-[0.7rem] font-semibold text-accent';
+const label = 'text-xs font-mono uppercase tracking-wider text-faint';
+const th = 'px-4 py-2.5 font-medium text-muted';
+const td = 'px-4 py-2.5 text-muted';
+const tdMono = 'px-4 py-2.5 font-mono text-ink';
+---
+
+<Base
+  title="API reference — Passwordify"
+  description="Complete REST API reference for Passwordify: real password strength scoring, k-anonymity breach screening, NIST 800-63B validation and CSPRNG generation."
+>
+  <!-- ================= HEADER ================= -->
+  <section class="border-b border-line bg-surface/40">
+    <div class="container-x py-12 sm:py-16">
+      <span class="eyebrow">
+        <span class="inline-block h-1.5 w-1.5 rounded-full bg-accent"></span>
+        Documentation
+      </span>
+      <h1 class="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">API reference</h1>
+      <p class="mt-4 max-w-2xl text-lg leading-relaxed text-muted">
+        Everything you need to add real strength scoring, breach screening and
+        NIST-aligned policy validation to your signup and reset flows. Every
+        endpoint is a <code class="chip-mono">POST</code> request that exchanges
+        JSON — no SDK required.
+      </p>
+    </div>
+  </section>
+
+  <!-- ================= DOCS BODY ================= -->
+  <div class="container-x py-10 sm:py-14">
+    <!-- Mobile section nav -->
+    <div class="mb-8 -mx-4 overflow-x-auto px-4 pb-1 lg:hidden">
+      <nav aria-label="Docs sections" class="flex w-max gap-2">
+        {
+          navGroups
+            .flatMap((g) => g.items)
+            .map((item) => (
+              <a href={item.href} class="pill shrink-0 whitespace-nowrap hover:text-ink">
+                {item.label}
+              </a>
+            ))
+        }
+      </nav>
+    </div>
+
+    <div class="lg:grid lg:grid-cols-[220px_minmax(0,1fr)] lg:items-start lg:gap-14 xl:gap-20">
+      <!-- Sidebar -->
+      <aside class="hidden lg:block">
+        <nav
+          aria-label="Docs sections"
+          class="sticky top-[84px] max-h-[calc(100vh-104px)] space-y-7 overflow-y-auto pb-10 pr-2 text-sm"
+        >
+          {
+            navGroups.map((group) => (
+              <div>
+                <p class={label + ' mb-2'}>{group.title}</p>
+                <ul class="space-y-0.5">
+                  {group.items.map((item) => (
+                    <li>
+                      <a
+                        href={item.href}
+                        data-docs-nav
+                        class="block truncate rounded-md px-2 py-1.5 text-muted transition-colors hover:text-ink"
+                      >
+                        {item.label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))
+          }
+        </nav>
+      </aside>
+
+      <!-- Main content -->
+      <div class="min-w-0">
+        <!-- ============ INTRODUCTION ============ -->
+        <section id="introduction" class="scroll-mt-[84px]">
+          <span class="eyebrow">Overview</span>
+          <h2 class="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">What the API does</h2>
+          <p class="mt-4 max-w-2xl leading-relaxed text-muted">
+            Passwordify's REST API brings the same checks that power the free
+            browser tools to your backend: real strength scoring from
+            <strong class="font-medium text-ink">zxcvbn</strong>, breach screening
+            against the <strong class="font-medium text-ink">Have I Been Pwned</strong>
+            corpus (900M+ passwords) via k-anonymity, policy validation aligned
+            with <strong class="font-medium text-ink">NIST 800-63B</strong>, and
+            password or passphrase generation from a cryptographically secure
+            random source (CSPRNG). Drop it into a signup form, a password reset
+            flow, or an internal admin tool.
+          </p>
+
+          <div class="mt-6 grid gap-3 sm:grid-cols-2">
+            <div class="rounded-[var(--radius-md)] border border-line bg-surface-2 p-4">
+              <p class={label}>Base URL</p>
+              <code class="chip-mono mt-2 inline-block">https://passwordify.xyz/api</code>
+            </div>
+            <div class="rounded-[var(--radius-md)] border border-line bg-surface-2 p-4">
+              <p class={label}>Format</p>
+              <p class="mt-2 text-sm leading-relaxed text-muted">
+                Every endpoint is a <code class="chip-mono">POST</code>. Send and
+                receive <code class="chip-mono">application/json</code>.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ AUTHENTICATION ============ -->
+        <section id="authentication" class="scroll-mt-[84px] mt-14 border-t border-line pt-14">
+          <span class="eyebrow">Auth</span>
+          <h2 class="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">Authentication</h2>
+          <p class="mt-4 max-w-2xl leading-relaxed text-muted">
+            Every request needs an API key, sent as a bearer token in the
+            <code class="chip-mono">Authorization</code> header:
+          </p>
+          <div class="mt-4 rounded-[var(--radius-md)] border border-line bg-surface-2 p-4">
+            <code class="font-mono text-sm text-ink">Authorization: Bearer pk_live_...</code>
+          </div>
+
+          <p class="mt-6 max-w-2xl leading-relaxed text-muted">
+            Don't have a key yet? Every example on this page also works with the
+            free, rate-limited demo key
+            <code class="chip-mono">pk_test_passwordify_demo</code> — no signup
+            required. Create a production key on the
+            <a href="/developers" class="font-medium text-accent hover:underline">Developers</a>
+            page when you're ready to go live.
+          </p>
+
+          <p class={label + ' mb-2 mt-6'}>Example</p>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <span class="terminal-dot"></span>
+              <span class="terminal-dot"></span>
+              <span class="terminal-dot"></span>
+              <span class="terminal-title">quickstart.sh</span>
+            </div>
+            <div class="terminal-body">
+<code><span class="tok-com"># Try it immediately with the free demo key (rate-limited)</span>
+<span class="tok-fn">curl</span> https://passwordify.xyz<span class="tok-str">/api/v1/strength</span> \
+  -H <span class="tok-str">"Authorization: Bearer pk_test_passwordify_demo"</span> \
+  -H <span class="tok-str">"Content-Type: application/json"</span> \
+  -d <span class="tok-str">'&#123;"password":"Tr0ub4dor92!"&#125;'</span>
+
+<span class="tok-com"># -&gt; 200 OK</span>
+<span class="tok-punc">&#123;</span>
+  <span class="tok-prop">"score"</span><span class="tok-punc">:</span> <span class="tok-num">3</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"guesses"</span><span class="tok-punc">:</span> <span class="tok-num">1834729102</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"entropyBits"</span><span class="tok-punc">:</span> <span class="tok-num">46.8</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"crackTime"</span><span class="tok-punc">:</span> <span class="tok-str">"3 months"</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"feedback"</span><span class="tok-punc">:</span> <span class="tok-punc">&#123;</span> <span class="tok-prop">"warning"</span><span class="tok-punc">:</span> <span class="tok-str">""</span><span class="tok-punc">,</span> <span class="tok-prop">"suggestions"</span><span class="tok-punc">:</span> <span class="tok-punc">[]</span> <span class="tok-punc">&#125;</span>
+<span class="tok-punc">&#125;</span></code>
+            </div>
+          </div>
+
+          <div class="mt-6 flex items-start gap-3 rounded-[var(--radius-md)] border border-line bg-surface-2 p-4">
+            <span class="mt-0.5 shrink-0 text-accent"><ToolIcon name="lock" size={18} /></span>
+            <p class="text-sm leading-relaxed text-muted">
+              <strong class="font-medium text-ink">Keys are secrets.</strong> Call
+              Passwordify from your backend only. Never ship a
+              <code class="chip-mono">pk_live_</code> key inside client-side
+              JavaScript, a mobile app binary, or a public repository — the demo
+              key above is the only one safe to expose.
+            </p>
+          </div>
+        </section>
+
+        <!-- ============ RATE LIMITS ============ -->
+        <section id="rate-limits" class="scroll-mt-[84px] mt-14 border-t border-line pt-14">
+          <span class="eyebrow">Limits</span>
+          <h2 class="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">Rate limits</h2>
+          <p class="mt-4 max-w-2xl leading-relaxed text-muted">
+            Limits apply on a rolling monthly window tied to your plan. Need more
+            headroom? See <a href="/pricing" class="font-medium text-accent hover:underline">pricing</a>.
+          </p>
+
+          <div class="mt-6 overflow-x-auto rounded-[var(--radius-md)] border border-line">
+            <table class="w-full min-w-[420px] border-collapse text-sm">
+              <thead>
+                <tr class="border-b border-line bg-surface-2 text-left">
+                  <th class={th}>Tier</th>
+                  <th class={th}>Requests / month</th>
+                  <th class={th}>Notes</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[var(--border)]">
+                <tr>
+                  <td class="px-4 py-2.5 text-ink">Free</td>
+                  <td class={tdMono}>1,000</td>
+                  <td class={td}>1 key, community support</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-2.5 text-ink">Pro</td>
+                  <td class={tdMono}>100,000</td>
+                  <td class={td}>5 keys, email support</td>
+                </tr>
+                <tr>
+                  <td class="px-4 py-2.5 text-ink">Scale</td>
+                  <td class={tdMono}>1,000,000</td>
+                  <td class={td}>Unlimited keys, custom limits, SLA</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="mt-6 leading-relaxed text-muted">Every response includes your current usage:</p>
+          <ul class="mt-3 space-y-2 text-sm">
+            <li class="flex flex-wrap items-baseline gap-2">
+              <code class="chip-mono">X-RateLimit-Limit</code>
+              <span class="text-muted">total requests allowed in the current window</span>
+            </li>
+            <li class="flex flex-wrap items-baseline gap-2">
+              <code class="chip-mono">X-RateLimit-Remaining</code>
+              <span class="text-muted">requests left before you're throttled</span>
+            </li>
+            <li class="flex flex-wrap items-baseline gap-2">
+              <code class="chip-mono">X-RateLimit-Reset</code>
+              <span class="text-muted">Unix timestamp when the window resets</span>
+            </li>
+          </ul>
+
+          <p class={label + ' mb-2 mt-6'}>Example — exceeding your quota</p>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <span class="terminal-dot"></span>
+              <span class="terminal-dot"></span>
+              <span class="terminal-dot"></span>
+              <span class="terminal-title">429-response.http</span>
+            </div>
+            <div class="terminal-body">
+<code><span class="tok-com"># Exceeding your plan's monthly quota</span>
+HTTP/1.1 429 Too Many Requests
+X-RateLimit-Limit: 1000
+X-RateLimit-Remaining: 0
+X-RateLimit-Reset: 1718900000
+
+<span class="tok-punc">&#123;</span>
+  <span class="tok-prop">"error"</span><span class="tok-punc">:</span> <span class="tok-punc">&#123;</span>
+    <span class="tok-prop">"code"</span><span class="tok-punc">:</span> <span class="tok-str">"rate_limited"</span><span class="tok-punc">,</span>
+    <span class="tok-prop">"message"</span><span class="tok-punc">:</span> <span class="tok-str">"Monthly request limit exceeded. Upgrade your plan or wait for the next billing cycle."</span>
+  <span class="tok-punc">&#125;</span>
+<span class="tok-punc">&#125;</span></code>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ ERRORS ============ -->
+        <section id="errors" class="scroll-mt-[84px] mt-14 border-t border-line pt-14">
+          <span class="eyebrow">Errors</span>
+          <h2 class="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">Errors</h2>
+          <p class="mt-4 max-w-2xl leading-relaxed text-muted">
+            Failed requests return a non-2xx HTTP status and a JSON body with the
+            same shape:
+          </p>
+          <div class="terminal mt-4">
+            <div class="terminal-bar">
+              <span class="terminal-dot"></span>
+              <span class="terminal-dot"></span>
+              <span class="terminal-dot"></span>
+              <span class="terminal-title">error.json</span>
+            </div>
+            <div class="terminal-body">
+<code><span class="tok-punc">&#123;</span>
+  <span class="tok-prop">"error"</span><span class="tok-punc">:</span> <span class="tok-punc">&#123;</span>
+    <span class="tok-prop">"code"</span><span class="tok-punc">:</span> <span class="tok-str">"bad_request"</span><span class="tok-punc">,</span>
+    <span class="tok-prop">"message"</span><span class="tok-punc">:</span> <span class="tok-str">"Field 'password' is required."</span>
+  <span class="tok-punc">&#125;</span>
+<span class="tok-punc">&#125;</span></code>
+            </div>
+          </div>
+
+          <div class="mt-6 overflow-x-auto rounded-[var(--radius-md)] border border-line">
+            <table class="w-full min-w-[480px] border-collapse text-sm">
+              <thead>
+                <tr class="border-b border-line bg-surface-2 text-left">
+                  <th class={th}>Status</th>
+                  <th class={th}>Code</th>
+                  <th class={th}>Meaning</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[var(--border)]">
+                <tr>
+                  <td class={tdMono}>400</td>
+                  <td class={tdMono}>bad_request</td>
+                  <td class={td}>Missing or malformed request body</td>
+                </tr>
+                <tr>
+                  <td class={tdMono}>401</td>
+                  <td class={tdMono}>unauthorized</td>
+                  <td class={td}>Missing, invalid, or revoked API key</td>
+                </tr>
+                <tr>
+                  <td class={tdMono}>429</td>
+                  <td class={tdMono}>rate_limited</td>
+                  <td class={td}>Monthly or burst rate limit exceeded</td>
+                </tr>
+                <tr>
+                  <td class={tdMono}>500</td>
+                  <td class={tdMono}>internal_error</td>
+                  <td class={td}>Unexpected server error — safe to retry with backoff</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ============ ENDPOINTS ============ -->
+        <section id="endpoints" class="scroll-mt-[84px] mt-14 border-t border-line pt-14">
+          <span class="eyebrow">Reference</span>
+          <h2 class="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">Endpoints</h2>
+          <p class="mt-4 max-w-2xl leading-relaxed text-muted">
+            Four endpoints cover strength, breach, policy validation, and
+            generation. Every one is a <code class="chip-mono">POST</code> with a
+            JSON body and a JSON response.
+          </p>
+
+          <!-- ---- /v1/strength ---- -->
+          <div id="strength" class="scroll-mt-[84px] mt-12">
+            <div class="flex flex-wrap items-center gap-3">
+              <span class={badge}>POST</span>
+              <code class="font-mono text-lg font-semibold text-ink sm:text-xl">/v1/strength</code>
+            </div>
+            <p class="mt-3 max-w-2xl leading-relaxed text-muted">
+              Score a password's real-world strength with zxcvbn's pattern,
+              dictionary, and keyboard-walk matching — far more accurate than a
+              length-and-character-class regex meter.
+            </p>
+
+            <p class={label + ' mb-2 mt-6'}>Parameters</p>
+            <div class="overflow-x-auto rounded-[var(--radius-md)] border border-line">
+              <table class="w-full min-w-[560px] border-collapse text-sm">
+                <thead>
+                  <tr class="border-b border-line bg-surface-2 text-left">
+                    <th class={th}>Parameter</th>
+                    <th class={th}>Type</th>
+                    <th class={th}>Required</th>
+                    <th class={th}>Description</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-[var(--border)]">
+                  <tr>
+                    <td class={tdMono}>password</td>
+                    <td class={td}>string</td>
+                    <td class={td}>Yes</td>
+                    <td class={td}>Plaintext password to score. Never logged or persisted.</td>
+                  </tr>
+                  <tr>
+                    <td class={tdMono}>userInputs</td>
+                    <td class={td}>string[]</td>
+                    <td class={td}>No</td>
+                    <td class={td}>Context words (username, email, site name) that count against the score if reused in the password.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p class={label + ' mb-2 mt-6'}>Example</p>
+            <div class="terminal">
+              <div class="terminal-bar">
+                <span class="terminal-dot"></span>
+                <span class="terminal-dot"></span>
+                <span class="terminal-dot"></span>
+                <span class="terminal-title">strength.sh</span>
+              </div>
+              <div class="terminal-body">
+<code><span class="tok-com"># Score a password as the user types</span>
+<span class="tok-fn">curl</span> https://passwordify.xyz<span class="tok-str">/api/v1/strength</span> \
+  -H <span class="tok-str">"Authorization: Bearer pk_live_..."</span> \
+  -H <span class="tok-str">"Content-Type: application/json"</span> \
+  -d <span class="tok-str">'&#123;"password":"Tr0ub4dor92!","userInputs":["emanuele","passwordify"]&#125;'</span>
+
+<span class="tok-com"># -&gt; 200 OK</span>
+<span class="tok-punc">&#123;</span>
+  <span class="tok-prop">"score"</span><span class="tok-punc">:</span> <span class="tok-num">3</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"guesses"</span><span class="tok-punc">:</span> <span class="tok-num">1834729102</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"entropyBits"</span><span class="tok-punc">:</span> <span class="tok-num">46.8</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"crackTime"</span><span class="tok-punc">:</span> <span class="tok-str">"3 months"</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"feedback"</span><span class="tok-punc">:</span> <span class="tok-punc">&#123;</span>
+    <span class="tok-prop">"warning"</span><span class="tok-punc">:</span> <span class="tok-str">""</span><span class="tok-punc">,</span>
+    <span class="tok-prop">"suggestions"</span><span class="tok-punc">:</span> <span class="tok-punc">[</span><span class="tok-str">"Add another word or two. Uncommon words are safer than substitutions."</span><span class="tok-punc">]</span>
+  <span class="tok-punc">&#125;</span>
+<span class="tok-punc">&#125;</span></code>
+              </div>
+            </div>
+          </div>
+
+          <!-- ---- /v1/breach ---- -->
+          <div id="breach" class="scroll-mt-[84px] mt-14 border-t border-line pt-12">
+            <div class="flex flex-wrap items-center gap-3">
+              <span class={badge}>POST</span>
+              <code class="font-mono text-lg font-semibold text-ink sm:text-xl">/v1/breach</code>
+            </div>
+            <p class="mt-3 max-w-2xl leading-relaxed text-muted">
+              Check whether a password appears in the Have I Been Pwned corpus
+              using k-anonymity — only a 5-character SHA-1 prefix ever leaves the
+              caller, never the password itself.
+            </p>
+
+            <p class={label + ' mb-2 mt-6'}>Parameters</p>
+            <div class="overflow-x-auto rounded-[var(--radius-md)] border border-line">
+              <table class="w-full min-w-[560px] border-collapse text-sm">
+                <thead>
+                  <tr class="border-b border-line bg-surface-2 text-left">
+                    <th class={th}>Parameter</th>
+                    <th class={th}>Type</th>
+                    <th class={th}>Required</th>
+                    <th class={th}>Description</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-[var(--border)]">
+                  <tr>
+                    <td class={tdMono}>password</td>
+                    <td class={td}>string</td>
+                    <td class={td}>One of password / sha1Prefix</td>
+                    <td class={td}>Plaintext password to check. Hashed and truncated to a 5-character prefix before comparison.</td>
+                  </tr>
+                  <tr>
+                    <td class={tdMono}>sha1Prefix</td>
+                    <td class={td}>string</td>
+                    <td class={td}>One of password / sha1Prefix</td>
+                    <td class={td}>Precomputed 5-character SHA-1 prefix, for callers that hash client-side.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p class={label + ' mb-2 mt-6'}>Example</p>
+            <div class="terminal">
+              <div class="terminal-bar">
+                <span class="terminal-dot"></span>
+                <span class="terminal-dot"></span>
+                <span class="terminal-dot"></span>
+                <span class="terminal-title">breach.sh</span>
+              </div>
+              <div class="terminal-body">
+<code><span class="tok-com"># "5BAA6" is the SHA-1 prefix of the word "password" — always breached</span>
+<span class="tok-fn">curl</span> https://passwordify.xyz<span class="tok-str">/api/v1/breach</span> \
+  -H <span class="tok-str">"Authorization: Bearer pk_live_..."</span> \
+  -H <span class="tok-str">"Content-Type: application/json"</span> \
+  -d <span class="tok-str">'&#123;"sha1Prefix":"5BAA6"&#125;'</span>
+
+<span class="tok-com"># -&gt; 200 OK</span>
+<span class="tok-punc">&#123;</span>
+  <span class="tok-prop">"breached"</span><span class="tok-punc">:</span> <span class="tok-key">true</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"count"</span><span class="tok-punc">:</span> <span class="tok-num">9545824</span>
+<span class="tok-punc">&#125;</span></code>
+              </div>
+            </div>
+          </div>
+
+          <!-- ---- /v1/validate ---- -->
+          <div id="validate" class="scroll-mt-[84px] mt-14 border-t border-line pt-12">
+            <div class="flex flex-wrap items-center gap-3">
+              <span class={badge}>POST</span>
+              <code class="font-mono text-lg font-semibold text-ink sm:text-xl">/v1/validate</code>
+            </div>
+            <p class="mt-3 max-w-2xl leading-relaxed text-muted">
+              Combine strength scoring and breach screening against a
+              configurable NIST 800-63B policy in one call — the endpoint most
+              signup and reset flows use directly.
+            </p>
+
+            <p class={label + ' mb-2 mt-6'}>Parameters</p>
+            <div class="overflow-x-auto rounded-[var(--radius-md)] border border-line">
+              <table class="w-full min-w-[560px] border-collapse text-sm">
+                <thead>
+                  <tr class="border-b border-line bg-surface-2 text-left">
+                    <th class={th}>Parameter</th>
+                    <th class={th}>Type</th>
+                    <th class={th}>Required</th>
+                    <th class={th}>Description</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-[var(--border)]">
+                  <tr>
+                    <td class={tdMono}>password</td>
+                    <td class={td}>string</td>
+                    <td class={td}>Yes</td>
+                    <td class={td}>Plaintext password to validate.</td>
+                  </tr>
+                  <tr>
+                    <td class={tdMono}>policy</td>
+                    <td class={td}>object</td>
+                    <td class={td}>No</td>
+                    <td class={td}>
+                      Overrides for <code class="chip-mono">minLength</code> (default 8),
+                      <code class="chip-mono">maxLength</code> (default 64),
+                      <code class="chip-mono">minScore</code> (default 2, 0–4), and
+                      <code class="chip-mono">blockBreached</code> (default true).
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p class={label + ' mb-2 mt-6'}>Example</p>
+            <div class="terminal">
+              <div class="terminal-bar">
+                <span class="terminal-dot"></span>
+                <span class="terminal-dot"></span>
+                <span class="terminal-dot"></span>
+                <span class="terminal-title">validate.sh</span>
+              </div>
+              <div class="terminal-body">
+<code><span class="tok-com"># Screen a password at signup — strength + breach + policy</span>
+<span class="tok-fn">curl</span> https://passwordify.xyz<span class="tok-str">/api/v1/validate</span> \
+  -H <span class="tok-str">"Authorization: Bearer pk_live_..."</span> \
+  -H <span class="tok-str">"Content-Type: application/json"</span> \
+  -d <span class="tok-str">'&#123;"password":"Summer2024!","policy":&#123;"minLength":12,"minScore":3&#125;&#125;'</span>
+
+<span class="tok-com"># -&gt; 200 OK</span>
+<span class="tok-punc">&#123;</span>
+  <span class="tok-prop">"valid"</span><span class="tok-punc">:</span> <span class="tok-key">false</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"score"</span><span class="tok-punc">:</span> <span class="tok-num">2</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"breached"</span><span class="tok-punc">:</span> <span class="tok-key">true</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"breachCount"</span><span class="tok-punc">:</span> <span class="tok-num">3529</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"violations"</span><span class="tok-punc">:</span> <span class="tok-punc">[</span><span class="tok-str">"min_length"</span><span class="tok-punc">,</span> <span class="tok-str">"found_in_breach"</span><span class="tok-punc">]</span>
+<span class="tok-punc">&#125;</span></code>
+              </div>
+            </div>
+          </div>
+
+          <!-- ---- /v1/generate ---- -->
+          <div id="generate" class="scroll-mt-[84px] mt-14 border-t border-line pt-12">
+            <div class="flex flex-wrap items-center gap-3">
+              <span class={badge}>POST</span>
+              <code class="font-mono text-lg font-semibold text-ink sm:text-xl">/v1/generate</code>
+            </div>
+            <p class="mt-3 max-w-2xl leading-relaxed text-muted">
+              Generate cryptographically strong passwords or diceware-style
+              passphrases from a CSPRNG — nothing pseudo-random, nothing seeded
+              from a timestamp.
+            </p>
+
+            <p class={label + ' mb-2 mt-6'}>Parameters</p>
+            <div class="overflow-x-auto rounded-[var(--radius-md)] border border-line">
+              <table class="w-full min-w-[560px] border-collapse text-sm">
+                <thead>
+                  <tr class="border-b border-line bg-surface-2 text-left">
+                    <th class={th}>Parameter</th>
+                    <th class={th}>Type</th>
+                    <th class={th}>Required</th>
+                    <th class={th}>Description</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-[var(--border)]">
+                  <tr>
+                    <td class={tdMono}>mode</td>
+                    <td class={td}>"password" | "passphrase"</td>
+                    <td class={td}>No</td>
+                    <td class={td}>Generation mode. Default "password".</td>
+                  </tr>
+                  <tr>
+                    <td class={tdMono}>length</td>
+                    <td class={td}>number</td>
+                    <td class={td}>No</td>
+                    <td class={td}>Character count in password mode (8–128). Default 20.</td>
+                  </tr>
+                  <tr>
+                    <td class={tdMono}>count</td>
+                    <td class={td}>number</td>
+                    <td class={td}>No</td>
+                    <td class={td}>Number of results to return. Default 1, max 50.</td>
+                  </tr>
+                  <tr>
+                    <td class={tdMono}>lowercase</td>
+                    <td class={td}>boolean</td>
+                    <td class={td}>No</td>
+                    <td class={td}>Include lowercase letters. Default true.</td>
+                  </tr>
+                  <tr>
+                    <td class={tdMono}>uppercase</td>
+                    <td class={td}>boolean</td>
+                    <td class={td}>No</td>
+                    <td class={td}>Include uppercase letters. Default true.</td>
+                  </tr>
+                  <tr>
+                    <td class={tdMono}>numbers</td>
+                    <td class={td}>boolean</td>
+                    <td class={td}>No</td>
+                    <td class={td}>Include digits. Default true.</td>
+                  </tr>
+                  <tr>
+                    <td class={tdMono}>symbols</td>
+                    <td class={td}>boolean</td>
+                    <td class={td}>No</td>
+                    <td class={td}>Include symbols. Default true.</td>
+                  </tr>
+                  <tr>
+                    <td class={tdMono}>avoidAmbiguous</td>
+                    <td class={td}>boolean</td>
+                    <td class={td}>No</td>
+                    <td class={td}>Exclude visually ambiguous characters (l, 1, I, O, 0). Default false.</td>
+                  </tr>
+                  <tr>
+                    <td class={tdMono}>words</td>
+                    <td class={td}>number</td>
+                    <td class={td}>No</td>
+                    <td class={td}>Word count in passphrase mode. Default 5 (~64.5 bits at 12.9 bits/word).</td>
+                  </tr>
+                  <tr>
+                    <td class={tdMono}>separator</td>
+                    <td class={td}>string</td>
+                    <td class={td}>No</td>
+                    <td class={td}>Separator between words in passphrase mode. Default "-".</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p class={label + ' mb-2 mt-6'}>Example</p>
+            <div class="terminal">
+              <div class="terminal-bar">
+                <span class="terminal-dot"></span>
+                <span class="terminal-dot"></span>
+                <span class="terminal-dot"></span>
+                <span class="terminal-title">generate.sh</span>
+              </div>
+              <div class="terminal-body">
+<code><span class="tok-com"># A memorable diceware passphrase, two variants</span>
+<span class="tok-fn">curl</span> https://passwordify.xyz<span class="tok-str">/api/v1/generate</span> \
+  -H <span class="tok-str">"Authorization: Bearer pk_live_..."</span> \
+  -H <span class="tok-str">"Content-Type: application/json"</span> \
+  -d <span class="tok-str">'&#123;"mode":"passphrase","words":5,"separator":"-","count":2&#125;'</span>
+
+<span class="tok-com"># -&gt; 200 OK</span>
+<span class="tok-punc">&#123;</span>
+  <span class="tok-prop">"passwords"</span><span class="tok-punc">:</span> <span class="tok-punc">[</span><span class="tok-str">"glacier-anchor-mural-triangle-woven"</span><span class="tok-punc">,</span> <span class="tok-str">"pebble-orchard-drift-lantern-cove"</span><span class="tok-punc">]</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"entropyBits"</span><span class="tok-punc">:</span> <span class="tok-num">64.5</span>
+<span class="tok-punc">&#125;</span></code>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ CODE EXAMPLES ============ -->
+        <section id="code-examples" class="scroll-mt-[84px] mt-14 border-t border-line pt-14">
+          <span class="eyebrow">Guides</span>
+          <h2 class="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">Code examples</h2>
+          <p class="mt-4 max-w-2xl leading-relaxed text-muted">
+            The same <code class="chip-mono">/v1/validate</code> call, in four languages.
+          </p>
+
+          <div id="code-examples-tabs" class="mt-6">
+            <div role="tablist" aria-label="Language" class="inline-flex flex-wrap gap-1 rounded-[var(--radius-md)] border border-line bg-surface-2 p-1">
+              <button
+                type="button"
+                role="tab"
+                id="tab-curl"
+                aria-controls="panel-curl"
+                aria-selected="true"
+                class="rounded-[var(--radius-sm)] bg-surface px-3 py-1.5 font-mono text-xs font-medium text-ink shadow-[var(--shadow-sm)] transition-colors"
+              >
+                curl
+              </button>
+              <button
+                type="button"
+                role="tab"
+                id="tab-js"
+                aria-controls="panel-js"
+                aria-selected="false"
+                class="rounded-[var(--radius-sm)] px-3 py-1.5 font-mono text-xs font-medium text-muted transition-colors hover:text-ink"
+              >
+                JavaScript
+              </button>
+              <button
+                type="button"
+                role="tab"
+                id="tab-csharp"
+                aria-controls="panel-csharp"
+                aria-selected="false"
+                class="rounded-[var(--radius-sm)] px-3 py-1.5 font-mono text-xs font-medium text-muted transition-colors hover:text-ink"
+              >
+                C#
+              </button>
+              <button
+                type="button"
+                role="tab"
+                id="tab-python"
+                aria-controls="panel-python"
+                aria-selected="false"
+                class="rounded-[var(--radius-sm)] px-3 py-1.5 font-mono text-xs font-medium text-muted transition-colors hover:text-ink"
+              >
+                Python
+              </button>
+            </div>
+
+            <div id="panel-curl" role="tabpanel" aria-labelledby="tab-curl" class="mt-3">
+              <div class="terminal">
+                <div class="terminal-bar">
+                  <span class="terminal-dot"></span>
+                  <span class="terminal-dot"></span>
+                  <span class="terminal-dot"></span>
+                  <span class="terminal-title">validate.sh</span>
+                </div>
+                <div class="terminal-body">
+<code><span class="tok-fn">curl</span> https://passwordify.xyz<span class="tok-str">/api/v1/validate</span> \
+  -H <span class="tok-str">"Authorization: Bearer pk_live_..."</span> \
+  -H <span class="tok-str">"Content-Type: application/json"</span> \
+  -d <span class="tok-str">'&#123;"password":"Summer2024!"&#125;'</span></code>
+                </div>
+              </div>
+            </div>
+
+            <div id="panel-js" role="tabpanel" aria-labelledby="tab-js" class="mt-3" hidden>
+              <div class="terminal">
+                <div class="terminal-bar">
+                  <span class="terminal-dot"></span>
+                  <span class="terminal-dot"></span>
+                  <span class="terminal-dot"></span>
+                  <span class="terminal-title">validate.js</span>
+                </div>
+                <div class="terminal-body">
+<code><span class="tok-key">const</span> res = <span class="tok-key">await</span> <span class="tok-fn">fetch</span>(<span class="tok-str">"https://passwordify.xyz/api/v1/validate"</span>, <span class="tok-punc">&#123;</span>
+  <span class="tok-prop">method</span>: <span class="tok-str">"POST"</span>,
+  <span class="tok-prop">headers</span>: <span class="tok-punc">&#123;</span>
+    <span class="tok-str">"Authorization"</span>: <span class="tok-str">"Bearer pk_live_..."</span>,
+    <span class="tok-str">"Content-Type"</span>: <span class="tok-str">"application/json"</span>,
+  <span class="tok-punc">&#125;</span>,
+  <span class="tok-prop">body</span>: <span class="tok-fn">JSON.stringify</span>(<span class="tok-punc">&#123;</span> <span class="tok-prop">password</span>: <span class="tok-str">"Summer2024!"</span> <span class="tok-punc">&#125;</span>),
+<span class="tok-punc">&#125;</span>);
+
+<span class="tok-key">const</span> data = <span class="tok-key">await</span> res.<span class="tok-fn">json</span>();
+<span class="tok-fn">console.log</span>(data.valid, data.violations);</code>
+                </div>
+              </div>
+            </div>
+
+            <div id="panel-csharp" role="tabpanel" aria-labelledby="tab-csharp" class="mt-3" hidden>
+              <div class="terminal">
+                <div class="terminal-bar">
+                  <span class="terminal-dot"></span>
+                  <span class="terminal-dot"></span>
+                  <span class="terminal-dot"></span>
+                  <span class="terminal-title">Validate.cs</span>
+                </div>
+                <div class="terminal-body">
+<code><span class="tok-key">using</span> var client = <span class="tok-key">new</span> <span class="tok-fn">HttpClient</span>();
+client.DefaultRequestHeaders.Authorization =
+    <span class="tok-key">new</span> <span class="tok-fn">AuthenticationHeaderValue</span>(<span class="tok-str">"Bearer"</span>, <span class="tok-str">"pk_live_..."</span>);
+
+var payload = JsonSerializer.<span class="tok-fn">Serialize</span>(<span class="tok-key">new</span> <span class="tok-punc">&#123;</span> password = <span class="tok-str">"Summer2024!"</span> <span class="tok-punc">&#125;</span>);
+var content = <span class="tok-key">new</span> <span class="tok-fn">StringContent</span>(payload, Encoding.UTF8, <span class="tok-str">"application/json"</span>);
+
+var response = <span class="tok-key">await</span> client.<span class="tok-fn">PostAsync</span>(
+    <span class="tok-str">"https://passwordify.xyz/api/v1/validate"</span>, content);
+
+Console.<span class="tok-fn">WriteLine</span>(<span class="tok-key">await</span> response.Content.<span class="tok-fn">ReadAsStringAsync</span>());</code>
+                </div>
+              </div>
+            </div>
+
+            <div id="panel-python" role="tabpanel" aria-labelledby="tab-python" class="mt-3" hidden>
+              <div class="terminal">
+                <div class="terminal-bar">
+                  <span class="terminal-dot"></span>
+                  <span class="terminal-dot"></span>
+                  <span class="terminal-dot"></span>
+                  <span class="terminal-title">validate.py</span>
+                </div>
+                <div class="terminal-body">
+<code><span class="tok-key">import</span> requests
+
+response = requests.<span class="tok-fn">post</span>(
+    <span class="tok-str">"https://passwordify.xyz/api/v1/validate"</span>,
+    headers=<span class="tok-punc">&#123;</span><span class="tok-str">"Authorization"</span>: <span class="tok-str">"Bearer pk_live_..."</span><span class="tok-punc">&#125;</span>,
+    json=<span class="tok-punc">&#123;</span><span class="tok-str">"password"</span>: <span class="tok-str">"Summer2024!"</span><span class="tok-punc">&#125;</span>,
+)
+
+data = response.<span class="tok-fn">json</span>()
+<span class="tok-fn">print</span>(data[<span class="tok-str">"valid"</span>], data[<span class="tok-str">"violations"</span>])</code>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</Base>
+
+<style>
+  code {
+    color: inherit;
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    // Tabbed code examples
+    var root = document.getElementById('code-examples-tabs');
+    if (root) {
+      var tabs = Array.prototype.slice.call(root.querySelectorAll('[role="tab"]'));
+      var panels = Array.prototype.slice.call(root.querySelectorAll('[role="tabpanel"]'));
+      tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          tabs.forEach(function (t) {
+            var active = t === tab;
+            t.setAttribute('aria-selected', String(active));
+            t.classList.toggle('bg-surface', active);
+            t.classList.toggle('text-ink', active);
+            t.classList.toggle('shadow-[var(--shadow-sm)]', active);
+            t.classList.toggle('text-muted', !active);
+          });
+          panels.forEach(function (panel) {
+            panel.hidden = panel.id !== tab.getAttribute('aria-controls');
+          });
+        });
+      });
+    }
+
+    // Scroll-spy for the sidebar / mobile nav
+    var links = Array.prototype.slice.call(document.querySelectorAll('[data-docs-nav]'));
+    if (!links.length || !('IntersectionObserver' in window)) return;
+
+    var sections = links
+      .map(function (link) {
+        try {
+          return document.querySelector(link.getAttribute('href'));
+        } catch (e) {
+          return null;
+        }
+      })
+      .filter(Boolean);
+    if (!sections.length) return;
+
+    var setActive = function (id) {
+      links.forEach(function (link) {
+        var active = link.getAttribute('href') === '#' + id;
+        link.classList.toggle('text-ink', active);
+        link.classList.toggle('bg-surface-2', active);
+        link.classList.toggle('font-medium', active);
+        link.classList.toggle('text-muted', !active);
+      });
+    };
+
+    var observer = new IntersectionObserver(
+      function (entries) {
+        var visible = entries
+          .filter(function (e) {
+            return e.isIntersecting;
+          })
+          .sort(function (a, b) {
+            return a.boundingClientRect.top - b.boundingClientRect.top;
+          });
+        if (visible[0]) setActive(visible[0].target.id);
+      },
+      { rootMargin: '-84px 0px -70% 0px', threshold: 0 }
+    );
+
+    sections.forEach(function (s) {
+      observer.observe(s);
+    });
+  })();
+</script>

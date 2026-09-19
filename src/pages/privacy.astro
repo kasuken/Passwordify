@@ -1,0 +1,248 @@
+---
+import Base from '../layouts/Base.astro';
+import ToolIcon from '../components/ToolIcon.astro';
+
+const lastUpdated = 'September 2026';
+---
+
+<Base
+  title="Privacy — Passwordify"
+  description="How Passwordify handles passwords and data: client-side browser tools, k-anonymity breach checks, and an API that never logs what you send it."
+>
+  <!-- ================= HEADER ================= -->
+  <section class="section pb-0">
+    <div class="container-x">
+      <div class="max-w-2xl">
+        <span class="eyebrow">
+          <span class="inline-block h-1.5 w-1.5 rounded-full bg-accent"></span>
+          Privacy
+        </span>
+        <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+          Privacy is a design constraint, not an afterthought.
+        </h2>
+        <p class="mt-4 text-lg leading-relaxed text-muted">
+          A password security tool that mishandles passwords isn't a tool worth
+          using. Here is exactly what we see, what we store, and what never leaves
+          your device — no legalese, no ambiguity.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= STANCE SUMMARY ================= -->
+  <section class="section">
+    <div class="container-x">
+      <div
+        class="card relative max-w-3xl overflow-hidden border-accent p-6 sm:p-8"
+        style="background: color-mix(in srgb, var(--accent) 6%, var(--surface));"
+      >
+        <div class="flex items-start gap-4">
+          <span
+            class="inline-grid h-11 w-11 shrink-0 place-items-center rounded-[var(--radius-md)]"
+            style="background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent);"
+          >
+            <ToolIcon name="shield" size={22} />
+          </span>
+          <div>
+            <h3 class="text-lg font-semibold">Our privacy stance</h3>
+            <ul class="mt-3 space-y-2.5 text-sm leading-relaxed text-muted">
+              <li class="flex items-start gap-2.5">
+                <span class="mt-0.5 text-accent"><ToolIcon name="check" size={16} /></span>
+                <span>The free browser tools run <strong class="text-ink">100% client-side</strong>. Your password is never transmitted, logged, or stored.</span>
+              </li>
+              <li class="flex items-start gap-2.5">
+                <span class="mt-0.5 text-accent"><ToolIcon name="check" size={16} /></span>
+                <span>Breach checks use <strong class="text-ink">k-anonymity</strong> — only a 5-character, padded SHA-1 hash prefix ever reaches our servers.</span>
+              </li>
+              <li class="flex items-start gap-2.5">
+                <span class="mt-0.5 text-accent"><ToolIcon name="check" size={16} /></span>
+                <span>The API processes passwords <strong class="text-ink">in memory only</strong>. Never logged. Never persisted. Never seen by a human.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= BROWSER TOOLS ================= -->
+  <section class="section border-t border-line">
+    <div class="container-x">
+      <div class="max-w-2xl">
+        <span class="eyebrow">In your browser</span>
+        <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+          The browser tools
+        </h2>
+      </div>
+
+      <div class="mt-8 max-w-2xl space-y-4 text-muted leading-relaxed">
+        <p>
+          The strength analyzer, breach checker, and generator at
+          <code class="chip-mono">/tools</code> require no account and transmit no
+          password. There is nothing to opt out of, because there is nothing being
+          collected: no form submission carries your input to a server, and no
+          analytics script observes what you type into a password field.
+        </p>
+      </div>
+
+      <div class="mt-10 max-w-2xl">
+        <h3 class="text-lg font-semibold">How k-anonymity protects a breach check</h3>
+        <p class="mt-3 text-muted leading-relaxed">
+          Checking a password against 900M+ breached credentials without ever sending
+          the password itself relies on one property of cryptographic hashes: you can
+          match a fragment of one without reconstructing the rest.
+        </p>
+        <ol class="mt-6 space-y-4">
+          {
+            [
+              'Your browser hashes the password locally with SHA-1. The plaintext never leaves memory, let alone the device.',
+              'Only the first 5 hex characters of that 40-character hash are sent to the API — never the password, never the full hash.',
+              'The API returns every breach record whose hash shares that 5-character prefix, typically a few hundred candidates.',
+              'Your browser compares the full local hash against that list and discards everything else. The match happens on-device.',
+            ].map((step, i) => (
+              <li class="flex gap-4">
+                <span class="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-surface-2 font-mono text-xs font-semibold text-accent tnum">
+                  {i + 1}
+                </span>
+                <span class="text-muted leading-relaxed">{step}</span>
+              </li>
+            ))
+          }
+        </ol>
+        <p class="mt-6 text-muted leading-relaxed">
+          The result: we never receive enough of the hash to identify — let alone
+          reverse — the password you checked.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= API ================= -->
+  <section class="section border-t border-line">
+    <div class="container-x">
+      <div class="max-w-2xl">
+        <span class="eyebrow">For developers</span>
+        <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+          The API
+        </h2>
+      </div>
+
+      <div class="mt-8 max-w-2xl space-y-4 text-muted leading-relaxed">
+        <p>
+          Integrating strength, breach, or validation checks into your own signup
+          flow means sending us a password over the wire, so we hold ourselves to a
+          stricter standard than "we promise not to look."
+        </p>
+        <p>
+          Every request travels over TLS. On arrival, the password exists only in
+          process memory for the duration of that single request — it is never
+          written to disk, never included in logs or error traces, and never
+          persisted in a database, cache, or backup, on any plan, including
+          self-hosted Enterprise deployments.
+        </p>
+        <p>
+          The only thing we retain per request is metadata needed to run the
+          service: a timestamp and a request count tied to your <strong class="text-ink">API key</strong>,
+          used for billing and rate-limiting. That metadata is never linked back to
+          the password or username you sent — only to the key that made the call.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= WHAT WE COLLECT ================= -->
+  <section class="section border-t border-line">
+    <div class="container-x">
+      <div class="max-w-2xl">
+        <span class="eyebrow">Data</span>
+        <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+          What we collect
+        </h2>
+        <p class="mt-4 text-lg text-muted leading-relaxed">
+          We keep this list short on purpose. If it isn't needed to run the
+          product or the business, we don't collect it.
+        </p>
+      </div>
+
+      <div class="mt-10 grid gap-6 sm:grid-cols-2">
+        <div class="max-w-md">
+          <h3 class="text-lg font-semibold">For API accounts</h3>
+          <p class="mt-3 text-muted leading-relaxed">
+            Your account email, for authentication and billing, and per-key usage
+            counts, for rate-limiting and invoicing. That's the entire list — we
+            don't profile usage patterns or resell account data.
+          </p>
+        </div>
+        <div class="max-w-md">
+          <h3 class="text-lg font-semibold">For passwordify.xyz</h3>
+          <p class="mt-3 text-muted leading-relaxed">
+            Privacy-respecting, cookieless analytics for aggregate traffic only —
+            page views and referrers, not individuals. No password content, form
+            input, or keystroke is ever collected on the marketing site or the
+            tools.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= COOKIES ================= -->
+  <section class="section border-t border-line">
+    <div class="container-x">
+      <div class="max-w-2xl">
+        <span class="eyebrow">Cookies &amp; storage</span>
+        <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+          Cookies
+        </h2>
+        <p class="mt-4 text-muted leading-relaxed">
+          We set essential cookies only — the kind needed to keep you signed in to
+          the developer dashboard. There is no advertising or cross-site tracking
+          cookie anywhere on passwordify.xyz.
+        </p>
+        <p class="mt-4 text-muted leading-relaxed">
+          Your light/dark theme preference is saved to
+          <code class="chip-mono">localStorage</code> on your device. It never
+          reaches our servers and never leaves your browser.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CONTACT ================= -->
+  <section class="section border-t border-line">
+    <div class="container-x">
+      <div class="max-w-2xl">
+        <span class="eyebrow">Requests</span>
+        <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+          Data requests &amp; contact
+        </h2>
+        <p class="mt-4 text-muted leading-relaxed">
+          Under GDPR and CCPA, you have the right to access, correct, export, or
+          delete the personal data we hold about you. Since that data is limited to
+          your account email and usage counts, most requests take minutes, not
+          weeks — email
+          <a href="mailto:hello@passwordify.xyz" class="text-accent underline underline-offset-2">hello@passwordify.xyz</a>
+          and we'll act on it, typically within 30 days at the outside.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CHANGES ================= -->
+  <section class="section border-t border-line">
+    <div class="container-x">
+      <div class="max-w-2xl">
+        <span class="eyebrow">Changelog</span>
+        <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+          Changes to this policy
+        </h2>
+        <p class="mt-4 text-muted leading-relaxed">
+          If this policy changes in a way that affects what we collect or how we
+          use it, we'll update the date below and, for material changes, notify
+          account holders by email before the change takes effect.
+        </p>
+        <p class="mt-6 text-sm text-faint">Last updated: {lastUpdated}</p>
+      </div>
+    </div>
+  </section>
+</Base>
