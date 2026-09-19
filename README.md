@@ -8,6 +8,8 @@
 ![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Deploys to Azure Static Web Apps](https://img.shields.io/badge/deploys%20to-Azure%20Static%20Web%20Apps-0078D4?logo=microsoftazure&logoColor=white)
 
+![Passwordify home page with the live password strength analyzer](docs/screenshots/home.png)
+
 Passwordify gives people three free, entirely client-side tools for checking and generating
 passwords — no password ever leaves the browser — and gives developers a small, fast API for
 adding the same checks (strength scoring, breach screening, policy validation, CSPRNG
@@ -38,6 +40,42 @@ developers who need NIST 800-63B-aligned password logic without writing it thems
 
 Every endpoint is stateless JSON over HTTPS, authenticated with a bearer API key, and returns
 structured `{error:{code,message}}` bodies with correct HTTP status codes.
+
+## Screenshots
+
+### Password strength analyzer
+
+Real, guess-based scoring from the zxcvbn engine — entropy, crack-time estimates and concrete
+feedback — with an inline breach lookup, all client-side.
+
+![Password strength analyzer showing a "Very strong" result with entropy and crack-time estimates](docs/screenshots/password-strength.png)
+
+### Breach check (k-anonymity)
+
+Tests a password against the Have I Been Pwned corpus while only ever sending a 5-character
+SHA-1 prefix — the panel even shows exactly what left the browser.
+
+![Breach check result showing a compromised password and the k-anonymity hash prefix that was sent](docs/screenshots/breach-check.png)
+
+### Password / passphrase generator
+
+CSPRNG-backed generation with a live entropy readout and full character-set controls, plus an
+EFF diceware passphrase mode.
+
+![Secure password generator with a generated password, entropy meter and character-set options](docs/screenshots/generator.png)
+
+### Developer API playground
+
+The `/developers` page runs the same engine that powers the API, so you can try `strength`,
+`breach`, `validate` and `generate` right in the browser before wiring up a key.
+
+![Developer API page with a live playground showing a /v1/validate request and JSON response](docs/screenshots/developers.png)
+
+### Dark mode
+
+Every page ships a polished dark theme via the header toggle.
+
+![Passwordify home page in dark mode](docs/screenshots/home-dark.png)
 
 ## Tech stack
 
@@ -77,6 +115,8 @@ Passwordify/
 │   ├── host.json           # Functions host configuration
 │   └── package.json        # API dependencies & build/start scripts
 ├── public/                 # static assets
+├── docs/
+│   └── screenshots/        # README screenshots
 └── astro.config.mjs        # site config (site URL, integrations, Tailwind, Vite)
 ```
 
