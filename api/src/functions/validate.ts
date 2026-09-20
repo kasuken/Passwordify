@@ -1,5 +1,5 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
-import { authenticate, rateLimitFor, rateLimitHeaders } from '../lib/auth';
+import { authorize } from '../lib/auth';
 import { checkBreach } from '../lib/breach';
 import { validatePolicy, type PolicyOptions } from '../lib/policy';
 import { errorResponse, json, preflightResponse } from '../lib/respond';
@@ -48,16 +48,11 @@ export async function validateHandler(request: HttpRequest, _context: Invocation
     return preflightResponse();
   }
 
-  const auth = authenticate(request);
-  if (!auth.ok) {
-    return errorResponse(auth.status, auth.code, auth.message);
+  const authz = await authorize(request);
+  if (!authz.ok) {
+    return errorResponse(authz.status, authz.code, authz.message, authz.headers);
   }
-
-  const rl = rateLimitFor(auth.keyId);
-  const rlHeaders = rateLimitHeaders(rl);
-  if (!rl.ok) {
-    return errorResponse(429, 'rate_limited', 'Rate limit exceeded. Please slow down and try again later.', rlHeaders);
-  }
+  const rlHeaders = authz.headers;
 
   let body: ValidateRequestBody;
   try {

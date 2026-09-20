@@ -19,22 +19,26 @@ works.
   demo-key auth and basic rate limiting — lets prospective customers try the API risk-free
   before we ask for payment details.
 
-## Phase 2 — Monetization
+## Phase 2 — Monetization (shipped)
 
 Turn API usage into recurring revenue. This is the phase that makes Passwordify a business
 rather than a portfolio project.
 
-- **User accounts + dashboard** — required before we can sell anything; lets customers see
-  their own usage and justify (or reduce) their spend, which lowers churn.
-- **Real API key issuance/rotation** — replaces the shared demo key so usage can be attributed,
-  metered, and revoked per customer — the precondition for billing.
-- **Stripe billing + usage metering** — the actual revenue mechanism (Free/Pro/Scale tiers,
-  overage billing); without it every other phase-2 item is cost with no return.
-- **Per-key rate limiting backed by a store** (Azure Table Storage / Cosmos DB) — protects
-  margins by enforcing plan limits and prevents one noisy customer from degrading the service
-  for everyone else, which protects retention.
-- **`api.passwordify.xyz` subdomain** — a stable, versioned base URL signals production-grade
-  reliability to paying customers and decouples API deploys from the marketing site.
+- **User accounts + dashboard** — ✅ shipped. `/dashboard` uses Azure Static Web Apps built-in
+  auth (GitHub + Microsoft), showing plan, monthly usage and API-key management.
+- **Real API key issuance/rotation** — ✅ shipped. `POST/DELETE /api/keys` issues/rotates/revokes
+  `pk_live_*` keys, stored as SHA-256 hashes in Azure Table Storage; `authorize()` validates them.
+- **Stripe billing** — ✅ shipped. Two tiers only, **Free** and **Pro** ($2/mo, $1.50/mo billed
+  annually). Stripe Checkout (`/api/checkout`), Billing Portal (`/api/portal`) and a signed
+  webhook (`/api/stripe/webhook`) keep each user's plan in sync.
+- **Per-key rate limiting + quota backed by a store** — ✅ shipped. Plan quotas live in
+  `api/src/lib/plans.ts`; monthly usage is metered in Table Storage (`pwfyusage`), plus a coarse
+  in-memory per-hour burst limit. (Burst limit is still per-instance — move to a shared store /
+  APIM for globally-accurate limits at scale.)
+- **`api.passwordify.xyz` subdomain** — still open; API currently served under `/api` on the SWA.
+
+Remaining phase-2 polish: automate key delivery email on upgrade, and a durable/shared burst
+limiter.
 
 ## Phase 3 — Product depth
 

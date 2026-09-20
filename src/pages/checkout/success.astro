@@ -1,0 +1,32 @@
+---
+import Base from '../../layouts/Base.astro';
+import ToolIcon from '../../components/ToolIcon.astro';
+---
+
+<Base
+  title="Payment successful — Passwordify"
+  description="Your Passwordify Pro subscription is active."
+  noindex
+>
+  <section class="section">
+    <div class="container-x">
+      <div class="mx-auto max-w-lg text-center">
+        <span class="mx-auto inline-grid h-14 w-14 place-items-center rounded-full bg-accent-soft text-accent">
+          <ToolIcon name="check" size={28} />
+        </span>
+        <h1 class="mt-6 text-3xl font-semibold tracking-tight">You’re on Pro 🎉</h1>
+        <p class="mt-4 text-lg text-muted">
+          Thanks for upgrading. Your plan is being activated — it usually takes only a few
+          seconds. Head to your dashboard to see your new limits and manage your key.
+        </p>
+        <div class="mt-8 flex flex-wrap justify-center gap-3">
+          <a href="/dashboard" class="btn btn-primary">Go to dashboard</a>
+          <a href="/docs" class="btn btn-secondary">Read the docs</a>
+        </div>
+        <p class="mt-6 text-xs text-muted">
+          If your plan still shows Free after a minute, refresh the dashboard.
+        </p>
+      </div>
+    </div>
+  </section>
+</Base>

@@ -1,0 +1,138 @@
+---
+import Base from '../layouts/Base.astro';
+import ToolIcon from '../components/ToolIcon.astro';
+
+// Competitor pricing figures are cited for comparison and were accurate at the
+// time of writing (2026); see each provider's site for current pricing.
+const rows: { label: string; pwfy: string | boolean; hibp: string | boolean; enzoic: string | boolean }[] = [
+  { label: 'k-anonymity breach check', pwfy: true, hibp: true, enzoic: true },
+  { label: 'zxcvbn strength scoring', pwfy: true, hibp: false, enzoic: false },
+  { label: 'NIST 800-63B pass/fail verdict', pwfy: true, hibp: false, enzoic: false },
+  { label: 'Secure password generation', pwfy: true, hibp: false, enzoic: false },
+  { label: 'Self-serve signup (no sales call)', pwfy: true, hibp: true, enzoic: 'Free tier only' },
+  { label: 'Free tier', pwfy: '1,000 req/mo', hibp: 'Pwned Passwords (unlimited)', enzoic: '2,000 calls' },
+  { label: 'Entry paid price', pwfy: '$1.50/mo', hibp: '$4.39/mo', enzoic: 'Contact sales' },
+];
+
+const faqs = [
+  {
+    q: 'Is Passwordify a drop-in replacement for Have I Been Pwned?',
+    a: 'For breach screening, it uses the same k-anonymity model HIBP pioneered — you send a short SHA-1 hash prefix, never the password. Where it goes further is bundling zxcvbn strength scoring and a NIST 800-63B verdict into the same API, so you get a full password decision from one provider.',
+  },
+  {
+    q: 'Isn’t the HIBP Pwned Passwords endpoint already free?',
+    a: 'Yes — and it’s excellent. If all you need is a raw breach lookup, use it directly. Passwordify is for teams that also want strength scoring, a policy verdict, generation, usage dashboards and support behind a single self-serve key.',
+  },
+  {
+    q: 'How does pricing compare?',
+    a: 'Passwordify Pro is $2/mo ($1.50/mo billed annually) for 100,000 requests. HIBP’s paid breach-search API starts around $4.39/mo and scales into the thousands; Enzoic and SpyCloud are quote-based enterprise sales. Passwordify is built for indie devs and small teams.',
+  },
+];
+
+const pageSchema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+];
+---
+
+<Base
+  title="Have I Been Pwned API Alternative for Developers | Passwordify"
+  description="Looking for a Have I Been Pwned API alternative? Passwordify bundles k-anonymity breach checks with zxcvbn strength scoring and a NIST 800-63B verdict — self-serve from $1.50/mo, no enterprise quote."
+  schema={pageSchema}
+>
+  <!-- Hero -->
+  <section class="relative overflow-hidden border-b border-line">
+    <div class="glow-accent"></div>
+    <div class="bg-grid absolute inset-0 opacity-70"></div>
+    <div class="container-x relative py-16 md:py-24">
+      <div class="max-w-3xl">
+        <span class="eyebrow"><ToolIcon name="shield" size={15} /> Comparison</span>
+        <h1 class="mt-5 text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl">
+          A Have I Been Pwned API <span class="text-accent">alternative</span> for developers.
+        </h1>
+        <p class="mt-6 max-w-2xl text-lg leading-relaxed text-muted">
+          Passwordify uses the same privacy-preserving k-anonymity breach model HIBP pioneered —
+          then adds zxcvbn strength scoring, a NIST 800-63B verdict, and secure generation behind
+          one self-serve key. Honest take: if you only need a raw breach lookup, HIBP’s free Pwned
+          Passwords endpoint is great. If you want the whole password decision in one API, read on.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="/dashboard" class="btn btn-primary">Get your API key</a>
+          <a href="/password-validation-api" class="btn btn-secondary">See the validation API</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison table -->
+  <section class="section">
+    <div class="container-x">
+      <div class="max-w-2xl">
+        <span class="eyebrow">Side by side</span>
+        <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">How they compare.</h2>
+      </div>
+      <div class="mt-10 overflow-x-auto rounded-[var(--radius-lg)] border border-line">
+        <table class="w-full min-w-[640px] border-collapse text-sm">
+          <thead>
+            <tr class="border-b border-line bg-surface-2">
+              <th class="px-5 py-3 text-left font-medium text-muted">Capability</th>
+              <th class="px-5 py-3 text-left font-semibold text-accent">Passwordify</th>
+              <th class="px-5 py-3 text-left font-semibold text-ink">HIBP</th>
+              <th class="px-5 py-3 text-left font-semibold text-ink">Enzoic</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, i) => (
+              <tr class={i % 2 === 1 ? 'bg-surface-2/40' : ''}>
+                <th class="border-t border-line px-5 py-3 text-left font-medium text-ink">{row.label}</th>
+                {[row.pwfy, row.hibp, row.enzoic].map((v) => (
+                  <td class="border-t border-line px-5 py-3 text-muted">
+                    {v === true ? (
+                      <span class="text-accent"><ToolIcon name="check" size={16} /></span>
+                    ) : v === false ? (
+                      <span aria-hidden="true">&mdash;</span>
+                    ) : (
+                      <span>{v}</span>
+                    )}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-4 text-xs text-faint">
+        Competitor details shown for comparison and accurate at time of writing; check each provider’s
+        site for current pricing and capabilities.
+      </p>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section border-t border-line">
+    <div class="container-x">
+      <div class="max-w-2xl">
+        <span class="eyebrow">FAQ</span>
+        <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Common questions.</h2>
+      </div>
+      <div class="mt-10 max-w-3xl divide-y divide-[var(--border)] overflow-hidden rounded-[var(--radius-md)] border border-line">
+        {faqs.map((f) => (
+          <details class="group bg-surface open:bg-surface-2/50">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold text-ink">
+              {f.q}
+              <svg class="h-4 w-4 shrink-0 text-muted transition-transform duration-200 group-open:rotate-45" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+            </summary>
+            <p class="px-5 pb-4 text-sm leading-relaxed text-muted">{f.a}</p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>

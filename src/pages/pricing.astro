@@ -2,102 +2,101 @@
 import Base from '../layouts/Base.astro';
 import ToolIcon from '../components/ToolIcon.astro';
 
-const plans = [
-  {
-    name: 'Free',
-    price: '$0',
-    suffix: '/mo',
-    tagline: 'For learning, prototypes, and personal projects.',
-    features: ['Unlimited browser tools', '1,000 API requests /mo', '1 API key', 'Community support'],
-    cta: { label: 'Start for free', href: '/developers' },
-    highlight: false,
-  },
-  {
-    name: 'Pro',
-    price: '$19',
-    suffix: '/mo',
-    tagline: 'For production apps validating real signups.',
-    features: [
-      '100,000 API requests /mo',
-      '5 API keys',
-      'Strength, breach, validate & generate',
-      'Email support',
-      '99.9% uptime SLA',
-    ],
-    cta: { label: 'Start with Pro', href: '/developers' },
-    highlight: true,
-  },
-  {
-    name: 'Scale',
-    price: '$99',
-    suffix: '/mo',
-    tagline: 'For high-traffic products and platforms.',
-    features: [
-      '1,000,000 API requests /mo',
-      'Unlimited API keys',
-      'Priority support',
-      'Custom rate limits',
-      'Formal uptime SLA',
-    ],
-    cta: { label: 'Start with Scale', href: '/developers' },
-    highlight: false,
-  },
-  {
-    name: 'Enterprise',
-    price: 'Contact',
-    suffix: '',
-    tagline: 'For regulated orgs that need to self-host.',
-    features: [
-      'Self-host / on-prem breach corpus',
-      'SSO (SAML / OIDC)',
-      'DPA & custom contracts',
-      'Volume pricing',
-    ],
-    cta: { label: 'Contact sales', href: 'mailto:hello@passwordify.xyz' },
-    highlight: false,
-  },
+// Prices are defined once here and reflected by the monthly/annual toggle below.
+const PRO_MONTHLY = 2; // $/mo billed monthly
+const PRO_ANNUAL_PER_MONTH = 1.5; // $/mo billed annually
+const PRO_ANNUAL_TOTAL = PRO_ANNUAL_PER_MONTH * 12; // $18 / year
+const ANNUAL_SAVING_PCT = Math.round((1 - PRO_ANNUAL_PER_MONTH / PRO_MONTHLY) * 100); // 25%
+
+const freeFeatures = [
+  'Unlimited browser tools — forever',
+  '1,000 API requests / mo',
+  '1 API key',
+  'Strength, breach, validate & generate',
+  'Community support',
 ];
 
-// true = check icon, false = em dash, string = literal cell value
-const comparison: { label: string; values: (string | boolean)[] }[] = [
-  { label: 'Monthly API requests', values: ['1,000', '100,000', '1,000,000', 'Custom'] },
-  { label: 'API keys', values: ['1', '5', 'Unlimited', 'Unlimited'] },
-  { label: 'Strength endpoint', values: [true, true, true, true] },
-  { label: 'Breach endpoint', values: [true, true, true, true] },
-  { label: 'Validate endpoint', values: [true, true, true, true] },
-  { label: 'Generate endpoint', values: [true, true, true, true] },
-  { label: 'Support level', values: ['Community', 'Email', 'Priority', 'Dedicated'] },
-  { label: 'Uptime SLA', values: [false, '99.9%', '99.95%', 'Custom (contract)'] },
-  { label: 'Self-hosting', values: [false, false, false, true] },
+const proFeatures = [
+  'Everything in Free',
+  '100,000 API requests / mo',
+  '5 API keys',
+  'Higher burst limits',
+  'Email support',
+];
+
+const comparison: { label: string; free: string | boolean; pro: string | boolean }[] = [
+  { label: 'Browser tools (strength, breach, generator)', free: 'Unlimited', pro: 'Unlimited' },
+  { label: 'Monthly API requests', free: '1,000', pro: '100,000' },
+  { label: 'API keys', free: '1', pro: '5' },
+  { label: 'Strength endpoint', free: true, pro: true },
+  { label: 'Breach endpoint', free: true, pro: true },
+  { label: 'Validate endpoint (NIST 800-63B)', free: true, pro: true },
+  { label: 'Generate endpoint', free: true, pro: true },
+  { label: 'Support', free: 'Community', pro: 'Email' },
 ];
 
 const faqs = [
   {
     q: 'Are the browser tools really free?',
-    a: 'Yes — the strength analyzer, breach checker, and generator are unlimited and free on every plan, including Free. There is no account, no trial period, and no plan to run out of.',
+    a: 'Yes — the strength analyzer, breach checker, and generator are unlimited and free on every plan, with no account and no expiry. They run entirely in your browser.',
   },
   {
     q: 'What counts as a request?',
-    a: 'One call to any /v1 endpoint (strength, breach, validate, or generate) is one request, regardless of payload size. Requesting several passwords in a single /v1/generate call still counts as one request.',
+    a: 'One call to any /v1 endpoint (strength, breach, validate, or generate) is one request, regardless of payload size. Generating several passwords in one /v1/generate call still counts as a single request.',
   },
   {
-    q: "Do you store passwords sent to the API?",
-    a: 'No. Passwords are processed in memory for the duration of the request and are never logged, cached, or persisted — on any plan, including Enterprise self-hosted deployments.',
+    q: 'What happens if I hit my monthly limit?',
+    a: 'Requests beyond your plan’s monthly quota return a 429 with a clear quota_exceeded error and X-Quota-* headers, so you always know where you stand. Upgrade to Pro for 100× the headroom.',
   },
   {
-    q: 'Can I self-host?',
-    a: 'Yes, on Enterprise. Self-hosted deployments run your own breach corpus on-prem or in your cloud, which is useful for air-gapped environments or strict data-residency requirements.',
+    q: 'Can I cancel anytime?',
+    a: 'Yes. Manage or cancel your subscription from your dashboard at any time via the Stripe billing portal. Annual plans run until the end of the paid period.',
+  },
+  {
+    q: 'Do you store passwords sent to the API?',
+    a: 'No. Passwords are processed in memory for the duration of the request and are never logged, cached, or persisted. Only per-key request counts are kept, for billing.',
   },
   {
     q: 'How do breach checks stay private?',
-    a: 'k-anonymity. Your browser hashes the password with SHA-1 locally and sends only the first 5 hex characters of the hash. The API returns every suffix that shares that prefix, and the match happens on-device — so it never sees the full hash or the password.',
+    a: 'k-anonymity. The password is hashed with SHA-1 and only the first 5 hex characters of the hash are used to query the breach corpus — the full hash and the password never leave your control.',
+  },
+];
+
+const pageSchema = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: 'Passwordify API',
+    description:
+      'Password strength scoring (zxcvbn), breach screening (k-anonymity) and NIST 800-63B validation as a single developer API.',
+    brand: { '@type': 'Brand', name: 'Passwordify' },
+    offers: [
+      { '@type': 'Offer', name: 'Free', price: '0', priceCurrency: 'USD', url: 'https://passwordify.xyz/pricing' },
+      {
+        '@type': 'Offer',
+        name: 'Pro (annual)',
+        price: PRO_ANNUAL_TOTAL.toFixed(2),
+        priceCurrency: 'USD',
+        url: 'https://passwordify.xyz/pricing',
+      },
+    ],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
   },
 ];
 ---
 
 <Base
-  title="Pricing — Passwordify"
-  description="Usage-based pricing for the Passwordify API. Free browser tools forever, paid plans for API volume, and a self-hosted Enterprise tier."
+  title="Pricing — Passwordify Password API (Free & Pro from $1.50/mo)"
+  description="Simple, honest pricing for the Passwordify password API. Free browser tools forever, and a Pro plan from $1.50/mo — a self-serve, developer-friendly alternative to enterprise-priced breach APIs."
+  schema={pageSchema}
 >
   <!-- ================= HEADER ================= -->
   <section class="section pb-0">
@@ -107,69 +106,94 @@ const faqs = [
           <span class="inline-block h-1.5 w-1.5 rounded-full bg-accent"></span>
           Pricing
         </span>
-        <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-          Simple, usage-based pricing
-        </h2>
+        <h1 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+          Simple pricing, indie-friendly.
+        </h1>
         <p class="mt-4 text-lg leading-relaxed text-muted">
-          Pay for API volume, not features. The strength analyzer, breach checker, and
-          generator in your browser are free — unlimited, no account required, no
-          expiry — on every plan, forever.
+          The strength analyzer, breach checker, and generator are free in your browser —
+          unlimited, no account. When you’re ready to add the same checks to your app,
+          Pro starts at <span class="chip-mono">${PRO_ANNUAL_PER_MONTH.toFixed(2)}/mo</span>.
         </p>
+      </div>
+
+      <!-- Billing toggle -->
+      <div class="mt-8 inline-flex items-center gap-1 rounded-[var(--radius-md)] border border-line bg-surface p-1" role="group" aria-label="Billing period">
+        <button
+          type="button"
+          id="toggle-monthly"
+          class="rounded-[var(--radius-sm)] px-4 py-2 text-sm font-medium transition-colors"
+          aria-pressed="true"
+        >
+          Monthly
+        </button>
+        <button
+          type="button"
+          id="toggle-annual"
+          class="rounded-[var(--radius-sm)] px-4 py-2 text-sm font-medium transition-colors"
+          aria-pressed="false"
+        >
+          Annual
+          <span class="ml-1 rounded-full bg-accent-soft px-2 py-0.5 text-[0.7rem] font-semibold text-accent">Save {ANNUAL_SAVING_PCT}%</span>
+        </button>
       </div>
     </div>
   </section>
 
   <!-- ================= PLANS ================= -->
-  <section class="section">
+  <section class="section pt-8">
     <div class="container-x">
-      <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {
-          plans.map((p) => (
-            <div
-              class={`card relative flex flex-col p-6 ${
-                p.highlight ? 'border-accent lg:-translate-y-2' : ''
-              }`}
-              style={p.highlight ? 'box-shadow: var(--shadow-lg);' : ''}
-            >
-              {p.highlight && (
-                <span
-                  class="pill absolute -top-3 left-1/2 -translate-x-1/2 border-0"
-                  style="background: var(--accent); color: var(--accent-contrast);"
-                >
-                  Most popular
-                </span>
-              )}
-              <h3 class="text-lg font-semibold">{p.name}</h3>
-              <p class="mt-1 text-sm leading-relaxed text-muted">{p.tagline}</p>
-              <p class="mt-5 flex items-baseline gap-1">
-                <span class="text-3xl font-semibold tracking-tight tnum">{p.price}</span>
-                {p.suffix && <span class="text-sm text-muted">{p.suffix}</span>}
-              </p>
-              <ul class="mt-6 flex-1 space-y-3">
-                {p.features.map((f) => (
-                  <li class="flex items-start gap-2.5 text-sm text-muted">
-                    <span class="mt-0.5 text-accent">
-                      <ToolIcon name="check" size={16} />
-                    </span>
-                    <span>{f}</span>
-                  </li>
-                ))}
-              </ul>
-              <a
-                href={p.cta.href}
-                class={`btn mt-7 w-full ${p.highlight ? 'btn-primary' : 'btn-secondary'}`}
-              >
-                {p.cta.label}
-              </a>
-            </div>
-          ))
-        }
+      <div class="grid max-w-3xl gap-5 sm:grid-cols-2">
+        <!-- Free -->
+        <div class="card relative flex flex-col p-6">
+          <h2 class="text-lg font-semibold">Free</h2>
+          <p class="mt-1 text-sm leading-relaxed text-muted">For learning, prototypes, and personal projects.</p>
+          <p class="mt-5 flex items-baseline gap-1">
+            <span class="text-4xl font-semibold tracking-tight tnum">$0</span>
+            <span class="text-sm text-muted">/mo</span>
+          </p>
+          <p class="mt-1 text-xs text-muted">No card required</p>
+          <ul class="mt-6 flex-1 space-y-3">
+            {freeFeatures.map((f) => (
+              <li class="flex items-start gap-2.5 text-sm text-muted">
+                <span class="mt-0.5 text-accent"><ToolIcon name="check" size={16} /></span>
+                <span>{f}</span>
+              </li>
+            ))}
+          </ul>
+          <a href="/dashboard" class="btn btn-secondary mt-7 w-full">Start for free</a>
+        </div>
+
+        <!-- Pro -->
+        <div class="card relative flex flex-col border-accent p-6" style="box-shadow: var(--shadow-lg);">
+          <span
+            class="pill absolute -top-3 left-1/2 -translate-x-1/2 border-0"
+            style="background: var(--accent); color: var(--accent-contrast);"
+          >
+            Most popular
+          </span>
+          <h2 class="text-lg font-semibold">Pro</h2>
+          <p class="mt-1 text-sm leading-relaxed text-muted">For production apps validating real signups.</p>
+          <p class="mt-5 flex items-baseline gap-1">
+            <span class="text-4xl font-semibold tracking-tight tnum" id="pro-price">${PRO_MONTHLY}</span>
+            <span class="text-sm text-muted">/mo</span>
+          </p>
+          <p class="mt-1 text-xs text-muted" id="pro-price-note">Billed monthly</p>
+          <ul class="mt-6 flex-1 space-y-3">
+            {proFeatures.map((f) => (
+              <li class="flex items-start gap-2.5 text-sm text-muted">
+                <span class="mt-0.5 text-accent"><ToolIcon name="check" size={16} /></span>
+                <span>{f}</span>
+              </li>
+            ))}
+          </ul>
+          <a href="/dashboard?upgrade=monthly" id="pro-cta" class="btn btn-primary mt-7 w-full">Upgrade to Pro</a>
+        </div>
       </div>
 
-      <p class="mt-8 text-center text-sm text-muted">
-        Pro and Scale include headroom for spikes: usage beyond your monthly quota is
-        billed at <span class="chip-mono">$1 / additional 10,000 requests</span> — no
-        hard cutoff, no forced upgrade.
+      <p class="mt-8 max-w-3xl text-sm text-muted">
+        Prefer to pay less? <span class="text-ink">Annual billing saves {ANNUAL_SAVING_PCT}%</span> —
+        ${PRO_ANNUAL_PER_MONTH.toFixed(2)}/mo, billed as ${PRO_ANNUAL_TOTAL.toFixed(0)} once a year.
+        Upgrades are handled securely by Stripe; cancel anytime from your dashboard.
       </p>
     </div>
   </section>
@@ -179,44 +203,35 @@ const faqs = [
     <div class="container-x">
       <div class="max-w-2xl">
         <span class="eyebrow">Compare plans</span>
-        <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-          Every plan, side by side.
-        </h2>
+        <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Free and Pro, side by side.</h2>
       </div>
 
-      <div class="mt-10 overflow-x-auto rounded-[var(--radius-lg)] border border-line">
-        <table class="w-full min-w-[640px] border-collapse text-sm">
+      <div class="mt-10 max-w-3xl overflow-x-auto rounded-[var(--radius-lg)] border border-line">
+        <table class="w-full min-w-[480px] border-collapse text-sm">
           <thead>
             <tr class="border-b border-line bg-surface-2">
               <th class="px-5 py-3 text-left font-medium text-muted">Feature</th>
-              {plans.map((p) => (
-                <th class="px-5 py-3 text-left font-semibold text-ink">{p.name}</th>
-              ))}
+              <th class="px-5 py-3 text-left font-semibold text-ink">Free</th>
+              <th class="px-5 py-3 text-left font-semibold text-ink">Pro</th>
             </tr>
           </thead>
           <tbody>
-            {
-              comparison.map((row, i) => (
-                <tr class={i % 2 === 1 ? 'bg-surface-2/40' : ''}>
-                  <th class="border-t border-line px-5 py-3 text-left font-medium text-ink">
-                    {row.label}
-                  </th>
-                  {row.values.map((v) => (
-                    <td class="border-t border-line px-5 py-3 text-muted">
-                      {v === true ? (
-                        <span class="text-accent">
-                          <ToolIcon name="check" size={16} />
-                        </span>
-                      ) : v === false ? (
-                        <span aria-hidden="true">&mdash;</span>
-                      ) : (
-                        <span class="tnum">{v}</span>
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              ))
-            }
+            {comparison.map((row, i) => (
+              <tr class={i % 2 === 1 ? 'bg-surface-2/40' : ''}>
+                <th class="border-t border-line px-5 py-3 text-left font-medium text-ink">{row.label}</th>
+                {[row.free, row.pro].map((v) => (
+                  <td class="border-t border-line px-5 py-3 text-muted">
+                    {v === true ? (
+                      <span class="text-accent"><ToolIcon name="check" size={16} /></span>
+                    ) : v === false ? (
+                      <span aria-hidden="true">&mdash;</span>
+                    ) : (
+                      <span class="tnum">{v}</span>
+                    )}
+                  </td>
+                ))}
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -228,33 +243,21 @@ const faqs = [
     <div class="container-x">
       <div class="max-w-2xl">
         <span class="eyebrow">FAQ</span>
-        <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-          Questions, answered.
-        </h2>
+        <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Questions, answered.</h2>
       </div>
 
       <div class="mt-10 max-w-3xl divide-y divide-[var(--border)] overflow-hidden rounded-[var(--radius-md)] border border-line">
-        {
-          faqs.map((f) => (
-            <details class="group bg-surface open:bg-surface-2/50">
-              <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold text-ink">
-                {f.q}
-                <svg
-                  class="h-4 w-4 shrink-0 text-muted transition-transform duration-200 group-open:rotate-45"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  aria-hidden="true"
-                >
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
-              </summary>
-              <p class="px-5 pb-4 text-sm leading-relaxed text-muted">{f.a}</p>
-            </details>
-          ))
-        }
+        {faqs.map((f) => (
+          <details class="group bg-surface open:bg-surface-2/50">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold text-ink">
+              {f.q}
+              <svg class="h-4 w-4 shrink-0 text-muted transition-transform duration-200 group-open:rotate-45" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </summary>
+            <p class="px-5 pb-4 text-sm leading-relaxed text-muted">{f.a}</p>
+          </details>
+        ))}
       </div>
     </div>
   </section>
@@ -266,18 +269,53 @@ const faqs = [
         <div class="glow-accent"></div>
         <div class="relative">
           <h2 class="mx-auto max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
-            Still deciding? Start free, upgrade when you need to.
+            Start free, upgrade when you need to.
           </h2>
           <p class="mx-auto mt-4 max-w-xl text-lg text-muted">
             Every plan runs the same zxcvbn scoring, k-anonymity breach checks, and
             NIST 800-63B validation — only the request volume changes.
           </p>
           <div class="mt-8 flex flex-wrap justify-center gap-3">
-            <a href="/developers" class="btn btn-primary">Get your API key</a>
+            <a href="/dashboard" class="btn btn-primary">Get your API key</a>
             <a href="/docs" class="btn btn-secondary">Read the docs</a>
           </div>
         </div>
       </div>
     </div>
   </section>
+
+  <script is:inline define:vars={{ PRO_MONTHLY, PRO_ANNUAL_PER_MONTH, PRO_ANNUAL_TOTAL }}>
+    (function () {
+      const monthlyBtn = document.getElementById('toggle-monthly');
+      const annualBtn = document.getElementById('toggle-annual');
+      const price = document.getElementById('pro-price');
+      const note = document.getElementById('pro-price-note');
+      const cta = document.getElementById('pro-cta');
+      if (!monthlyBtn || !annualBtn || !price || !note || !cta) return;
+
+      const activeCls = ['bg-surface-2', 'text-ink', 'shadow-sm'];
+      const idleCls = ['text-muted'];
+
+      function setActive(btn, isActive) {
+        btn.setAttribute('aria-pressed', String(isActive));
+        activeCls.forEach((c) => btn.classList.toggle(c, isActive));
+        idleCls.forEach((c) => btn.classList.toggle(c, !isActive));
+      }
+
+      function select(interval) {
+        const annual = interval === 'annual';
+        setActive(annualBtn, annual);
+        setActive(monthlyBtn, !annual);
+        price.textContent = '$' + (annual ? PRO_ANNUAL_PER_MONTH.toFixed(2) : String(PRO_MONTHLY));
+        note.textContent = annual
+          ? 'Billed annually ($' + PRO_ANNUAL_TOTAL.toFixed(0) + '/yr)'
+          : 'Billed monthly';
+        cta.setAttribute('href', '/dashboard?upgrade=' + interval);
+      }
+
+      monthlyBtn.addEventListener('click', () => select('monthly'));
+      annualBtn.addEventListener('click', () => select('annual'));
+      select('monthly');
+    })();
+  </script>
 </Base>

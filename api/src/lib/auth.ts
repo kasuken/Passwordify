@@ -1,4 +1,7 @@
 import type { HttpRequest } from '@azure/functions';
+import { hashApiKey } from './apikey';
+import { PLANS, planConfig, type PlanId } from './plans';
+import { getKeyByHash, incrementUsage, isStoreConfigured } from './store';
 
 export interface AuthSuccess {
   ok: true;
@@ -141,3 +144,133 @@ export function rateLimitHeaders(result: RateLimitResult): Record<string, string
     'X-RateLimit-Reset': String(Math.ceil(result.resetMs / 1000)),
   };
 }
+
+// --- Plan-aware authorization (auth + burst limit + monthly quota) ---------
+//
+// `authorize()` is the single entry point every /v1 endpoint uses. It:
+//   1. resolves the bearer token to a plan (demo key, env key, or a real key
+//      provisioned via the dashboard and stored in Table Storage),
+//   2. applies a coarse per-hour burst limit for that plan,
+//   3. increments and enforces the plan's monthly quota (when a store is
+//      configured), emitting X-RateLimit-* and X-Quota-* headers.
+
+const HOUR_MS = 60 * 60 * 1000;
+
+export interface AuthzSuccess {
+  ok: true;
+  keyId: string;
+  plan: PlanId;
+  headers: Record<string, string>;
+}
+
+export interface AuthzFailure {
+  ok: false;
+  status: number;
+  code: string;
+  message: string;
+  headers: Record<string, string>;
+}
+
+export type AuthzResult = AuthzSuccess | AuthzFailure;
+
+function extractBearer(request: HttpRequest): string | AuthFailure {
+  const header = request.headers.get('authorization');
+  if (!header || header.trim().length === 0) {
+    return {
+      ok: false,
+      status: 401,
+      code: 'unauthorized',
+      message: 'Missing Authorization header. Provide "Authorization: Bearer <api-key>".',
+    };
+  }
+  const match = /^Bearer\s+(.+)$/i.exec(header.trim());
+  const key = match?.[1]?.trim();
+  if (!key) {
+    return {
+      ok: false,
+      status: 401,
+      code: 'unauthorized',
+      message: 'Authorization header must be in the form "Bearer <api-key>".',
+    };
+  }
+  return key;
+}
+
+interface ResolvedKey {
+  keyId: string;
+  plan: PlanId;
+  /** Partition used for monthly usage accounting. */
+  usagePartition: string;
+}
+
+async function resolveKey(key: string): Promise<ResolvedKey | AuthFailure> {
+  // 1. Public demo key.
+  if (key === DEMO_API_KEY) {
+    return { keyId: DEMO_API_KEY, plan: 'demo', usagePartition: `demo:${DEMO_API_KEY}` };
+  }
+
+  // 2. Manually-provisioned keys from the PASSWORDIFY_API_KEYS app setting are
+  //    treated as Pro (they are granted by hand, e.g. for partners).
+  if (getConfiguredKeys().has(key)) {
+    return { keyId: key, plan: 'pro', usagePartition: `envkey:${hashApiKey(key)}` };
+  }
+
+  // 3. Real keys provisioned through the dashboard, stored hashed.
+  if (isStoreConfigured()) {
+    const record = await getKeyByHash(hashApiKey(key));
+    if (record && record.active) {
+      return { keyId: record.keyHash, plan: record.plan, usagePartition: `user:${record.userId}` };
+    }
+  }
+
+  return { ok: false, status: 401, code: 'unauthorized', message: 'Invalid API key.' };
+}
+
+export async function authorize(request: HttpRequest): Promise<AuthzResult> {
+  const token = extractBearer(request);
+  if (typeof token !== 'string') {
+    return { ...token, headers: {} };
+  }
+
+  const resolved = await resolveKey(token);
+  if ('ok' in resolved) {
+    return { ...resolved, headers: {} };
+  }
+
+  const cfg = planConfig(resolved.plan);
+
+  // Burst limit (per hour).
+  const rl = rateLimit(resolved.keyId, cfg.burstPerHour, HOUR_MS);
+  const headers = rateLimitHeaders(rl);
+  if (!rl.ok) {
+    return {
+      ok: false,
+      status: 429,
+      code: 'rate_limited',
+      message: 'Burst rate limit exceeded. Please slow down and try again shortly.',
+      headers,
+    };
+  }
+
+  // Monthly quota (only when durable storage is available).
+  if (isStoreConfigured()) {
+    const usage = await incrementUsage(resolved.usagePartition, cfg.monthlyQuota);
+    headers['X-Quota-Limit'] = String(usage.limit);
+    headers['X-Quota-Used'] = String(usage.used);
+    headers['X-Quota-Remaining'] = String(Math.max(0, usage.limit - usage.used));
+    headers['X-Quota-Period'] = usage.month;
+    if (!usage.allowed) {
+      return {
+        ok: false,
+        status: 429,
+        code: 'quota_exceeded',
+        message: `Monthly quota of ${cfg.monthlyQuota.toLocaleString('en-US')} requests exceeded for the ${cfg.label} plan. Upgrade for more headroom.`,
+        headers,
+      };
+    }
+  }
+
+  return { ok: true, keyId: resolved.keyId, plan: resolved.plan, headers };
+}
+
+export { PLANS };

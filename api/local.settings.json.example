@@ -1,9 +1,18 @@
 {
   "IsEncrypted": false,
   "Values": {
-    "AzureWebJobsStorage": "",
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "node",
-    "PASSWORDIFY_API_KEYS": "pk_live_replace_me_1,pk_live_replace_me_2"
+
+    "PASSWORDIFY_API_KEYS": "pk_live_replace_me_1,pk_live_replace_me_2",
+
+    "PASSWORDIFY_STORAGE_CONNECTION": "UseDevelopmentStorage=true",
+
+    "STRIPE_SECRET_KEY": "sk_test_replace_me",
+    "STRIPE_WEBHOOK_SECRET": "whsec_replace_me",
+    "STRIPE_PRICE_PRO_MONTHLY": "price_replace_me_monthly",
+    "STRIPE_PRICE_PRO_ANNUAL": "price_replace_me_annual",
+    "SITE_URL": "http://localhost:4280"
   },
   "Host": {
     "CORS": "*"
