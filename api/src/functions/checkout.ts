@@ -8,6 +8,13 @@ interface CheckoutBody {
   interval?: unknown;
 }
 
+// SWA exposes GitHub logins as a username (not an email), so `user.email` may
+// hold something like "kasuken". Only pass a real email to Stripe; otherwise
+// let Stripe Checkout collect it.
+function asEmail(value: string | undefined): string | undefined {
+  return value && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value) ? value : undefined;
+}
+
 /**
  * POST /api/checkout — start a Stripe Checkout session for the Pro plan.
  * Body: { interval: "monthly" | "annual" }. Returns { url } to redirect to.
@@ -51,8 +58,8 @@ export async function checkoutHandler(request: HttpRequest, context: InvocationC
     let customerId = user.stripeCustomerId;
     if (!customerId) {
       const customer = await stripe.customers.create({
-        email: user.email || undefined,
-        metadata: { userId: user.userId },
+        email: asEmail(user.email),
+        metadata: { userId: user.userId, provider: user.provider, login: user.email },
       });
       customerId = customer.id;
       await upsertUser({ ...user, stripeCustomerId: customerId, updatedAt: new Date().toISOString() });
