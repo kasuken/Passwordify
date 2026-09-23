@@ -78,8 +78,8 @@ Azure Portal → your Static Web App → **Settings → Configuration** →
 |------|-------|---------|
 | `PASSWORDIFY_STORAGE_CONNECTION` | *(storage connection string)* | Users, keys, usage |
 | `STRIPE_SECRET_KEY` | `sk_live_...` | Stripe API access (also used for live plan checks) |
-| `STRIPE_PRICE_PRO_MONTHLY` | `price_...` | $2/mo price |
-| `STRIPE_PRICE_PRO_ANNUAL` | `price_...` | $18/yr price |
+| `STRIPE_PRICE_PRO_MONTHLY` | `price_...` | $2/mo price — *optional; a default is baked into the code. Set this only to override (e.g. a different Stripe mode).* |
+| `STRIPE_PRICE_PRO_ANNUAL` | `price_...` | $18/yr price — *optional; default baked in, same override note.* |
 | `SITE_URL` | `https://passwordify.xyz` | Checkout redirect URLs |
 | `PASSWORDIFY_API_KEYS` | *(optional)* | Comma-separated keys granted by hand (treated as Pro) |
 

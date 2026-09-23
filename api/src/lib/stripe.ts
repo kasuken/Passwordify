@@ -35,8 +35,19 @@ export function isStripeConfigured(): boolean {
 
 export type BillingInterval = 'monthly' | 'annual';
 
+// Default Pro price IDs. Price IDs are NOT secrets (safe to expose), so they're
+// baked in for convenience. The STRIPE_PRICE_PRO_MONTHLY / STRIPE_PRICE_PRO_ANNUAL
+// app settings override them — set those if your Stripe secret key is in a
+// different mode (e.g. live) than these prices, since a live key cannot use a
+// test-mode price and vice-versa.
+const DEFAULT_PRICE_PRO_MONTHLY = 'price_1UImdeBHFTxI6VL54oxJVhLD';
+const DEFAULT_PRICE_PRO_ANNUAL = 'price_1UImdeBHFTxI6VL5d8jnQ96f';
+
 export function priceIdFor(interval: BillingInterval): string {
-  const id = interval === 'annual' ? process.env.STRIPE_PRICE_PRO_ANNUAL : process.env.STRIPE_PRICE_PRO_MONTHLY;
+  const id =
+    interval === 'annual'
+      ? process.env.STRIPE_PRICE_PRO_ANNUAL || DEFAULT_PRICE_PRO_ANNUAL
+      : process.env.STRIPE_PRICE_PRO_MONTHLY || DEFAULT_PRICE_PRO_MONTHLY;
   if (!id) {
     throw new Error(`No Stripe price configured for the "${interval}" interval.`);
   }
