@@ -40,31 +40,20 @@ function getConfiguredKeys(): Set<string> {
 }
 
 /**
- * Authenticate an incoming request via `Authorization: Bearer <api-key>`.
+ * Authenticate an incoming request via the `X-API-Key` header (or, as a
+ * fallback, `Authorization: Bearer <api-key>` for non-SWA callers).
  * Accepts the fixed demo key, or any key listed (comma-separated) in the
  * `PASSWORDIFY_API_KEYS` environment variable.
  */
 export function authenticate(request: HttpRequest): AuthResult {
-  const header = request.headers.get('authorization');
-
-  if (!header || header.trim().length === 0) {
-    return {
-      ok: false,
-      status: 401,
-      code: 'unauthorized',
-      message: 'Missing Authorization header. Provide "Authorization: Bearer <api-key>".',
-    };
-  }
-
-  const match = /^Bearer\s+(.+)$/i.exec(header.trim());
-  const key = match?.[1]?.trim();
+  const key = readRawKeyCompat(request);
 
   if (!key) {
     return {
       ok: false,
       status: 401,
       code: 'unauthorized',
-      message: 'Authorization header must be in the form "Bearer <api-key>".',
+      message: 'Missing API key. Provide it via the "X-API-Key" header.',
     };
   }
 
@@ -82,6 +71,23 @@ export function authenticate(request: HttpRequest): AuthResult {
     code: 'unauthorized',
     message: 'Invalid API key.',
   };
+}
+
+/**
+ * Same extraction as readRawKey (defined below), duplicated here so the legacy
+ * authenticate() helper stays self-contained. X-API-Key first (SWA-safe), then
+ * Authorization: Bearer as a fallback.
+ */
+function readRawKeyCompat(request: HttpRequest): string | null {
+  const apiKey = request.headers.get('x-api-key');
+  if (apiKey && apiKey.trim().length > 0) return apiKey.trim();
+  const header = request.headers.get('authorization');
+  if (header && header.trim().length > 0) {
+    const match = /^Bearer\s+(.+)$/i.exec(header.trim());
+    const key = match?.[1]?.trim();
+    if (key) return key;
+  }
+  return null;
 }
 
 // --- In-memory fixed-window rate limiter -----------------------------
@@ -174,24 +180,38 @@ export interface AuthzFailure {
 
 export type AuthzResult = AuthzSuccess | AuthzFailure;
 
-function extractBearer(request: HttpRequest): string | AuthFailure {
-  const header = request.headers.get('authorization');
-  if (!header || header.trim().length === 0) {
-    return {
-      ok: false,
-      status: 401,
-      code: 'unauthorized',
-      message: 'Missing Authorization header. Provide "Authorization: Bearer <api-key>".',
-    };
+/**
+ * Read the raw API key from a request.
+ *
+ * IMPORTANT: Azure Static Web Apps reserves and overwrites the `Authorization`
+ * header on requests to managed Functions (it uses it for its own auth system),
+ * so a client's `Authorization: Bearer <key>` never reaches us intact. The key
+ * is therefore provided primarily via the `X-API-Key` header, which passes
+ * through untouched. `Authorization: Bearer` is still accepted as a fallback for
+ * direct (non-SWA) calls.
+ */
+function readRawKey(request: HttpRequest): string | null {
+  const apiKey = request.headers.get('x-api-key');
+  if (apiKey && apiKey.trim().length > 0) {
+    return apiKey.trim();
   }
-  const match = /^Bearer\s+(.+)$/i.exec(header.trim());
-  const key = match?.[1]?.trim();
+  const header = request.headers.get('authorization');
+  if (header && header.trim().length > 0) {
+    const match = /^Bearer\s+(.+)$/i.exec(header.trim());
+    const key = match?.[1]?.trim();
+    if (key) return key;
+  }
+  return null;
+}
+
+function extractApiKey(request: HttpRequest): string | AuthFailure {
+  const key = readRawKey(request);
   if (!key) {
     return {
       ok: false,
       status: 401,
       code: 'unauthorized',
-      message: 'Authorization header must be in the form "Bearer <api-key>".',
+      message: 'Missing API key. Provide it via the "X-API-Key" header.',
     };
   }
   return key;
@@ -239,7 +259,7 @@ async function resolveKey(key: string): Promise<ResolvedKey | AuthFailure> {
 }
 
 export async function authorize(request: HttpRequest): Promise<AuthzResult> {
-  const token = extractBearer(request);
+  const token = extractApiKey(request);
   if (typeof token !== 'string') {
     return { ...token, headers: {} };
   }
