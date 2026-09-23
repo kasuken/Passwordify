@@ -24,7 +24,7 @@ const {
   noindex = false,
 } = Astro.props;
 
-const siteBase = Astro.site ?? 'https://passwordify.xyz';
+const siteBase = Astro.site ?? 'https://www.passwordify.xyz';
 const canonical = new URL(Astro.url.pathname, siteBase).href;
 const ogUrl = new URL(ogImage, siteBase).href;
 

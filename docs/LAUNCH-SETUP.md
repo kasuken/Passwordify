@@ -80,7 +80,7 @@ Azure Portal → your Static Web App → **Settings → Configuration** →
 | `STRIPE_SECRET_KEY` | `sk_live_...` | Stripe API access (also used for live plan checks) |
 | `STRIPE_PRICE_PRO_MONTHLY` | `price_...` | $2/mo price ID |
 | `STRIPE_PRICE_PRO_ANNUAL` | `price_...` | $18/yr price ID |
-| `SITE_URL` | `https://passwordify.xyz` | Checkout redirect URLs |
+| `SITE_URL` | `https://www.passwordify.xyz` | Checkout redirect URLs |
 | `PASSWORDIFY_API_KEYS` | *(optional)* | Comma-separated keys granted by hand (treated as Pro) |
 
 > Use **live** Stripe values in production and **test** values in a staging slot.
@@ -111,7 +111,7 @@ the signed-in user from the `x-ms-client-principal` header.
 - [ ] Deploy `main` (GitHub Actions builds the site + `api/`).
 - [ ] Smoke test:
   1. Sign in at `/dashboard` → **Create key** → copy it.
-  2. `curl https://passwordify.xyz/api/v1/validate -H "Authorization: Bearer <key>" -H "Content-Type: application/json" -d '{"password":"hunter2"}'` → 200.
+  2. `curl https://www.passwordify.xyz/api/v1/validate -H "Authorization: Bearer <key>" -H "Content-Type: application/json" -d '{"password":"hunter2"}'` → 200.
   3. `/pricing` → toggle Annual → **Upgrade to Pro** → complete Stripe **test** checkout.
   4. Back on `/dashboard`, plan shows **Pro** (verified live from Stripe on load).
   5. **Manage billing** opens the Stripe portal; cancel there → dashboard shows Free on next load.

@@ -8,7 +8,7 @@ import type { PlanId } from './plans';
  *   STRIPE_SECRET_KEY          sk_live_… / sk_test_…
  *   STRIPE_PRICE_PRO_MONTHLY   price_…            (Pro, $2 / month)
  *   STRIPE_PRICE_PRO_ANNUAL    price_…            (Pro, $18 / year = $1.50/mo)
- *   SITE_URL                   https://passwordify.xyz (for redirect URLs)
+ *   SITE_URL                   https://www.passwordify.xyz (for redirect URLs)
  *
  * There is intentionally no webhook: a user's plan is verified live against
  * Stripe (and cached — see lib/billing.ts) rather than pushed by Stripe events.
@@ -44,7 +44,7 @@ export function priceIdFor(interval: BillingInterval): string {
 }
 
 export function siteUrl(): string {
-  return (process.env.SITE_URL || 'https://passwordify.xyz').replace(/\/+$/, '');
+  return (process.env.SITE_URL || 'https://www.passwordify.xyz').replace(/\/+$/, '');
 }
 
 /**
