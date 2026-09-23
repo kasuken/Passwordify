@@ -8,7 +8,7 @@ import { errorResponse, json, preflightResponse } from '../lib/respond';
  * POST /api/portal — open the Stripe Billing Portal so a customer can update
  * their payment method, switch billing interval, or cancel. Returns { url }.
  */
-export async function portalHandler(request: HttpRequest, _context: InvocationContext): Promise<HttpResponseInit> {
+export async function portalHandler(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   if (request.method === 'OPTIONS') {
     return preflightResponse();
   }
@@ -30,12 +30,17 @@ export async function portalHandler(request: HttpRequest, _context: InvocationCo
   }
 
   const stripe = getStripe();
-  const session = await stripe.billingPortal.sessions.create({
-    customer: user.stripeCustomerId,
-    return_url: `${siteUrl()}/dashboard`,
-  });
-
-  return json(200, { url: session.url });
+  try {
+    const session = await stripe.billingPortal.sessions.create({
+      customer: user.stripeCustomerId,
+      return_url: `${siteUrl()}/dashboard`,
+    });
+    return json(200, { url: session.url });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Stripe request failed.';
+    context.error('Stripe billing portal failed', err);
+    return errorResponse(502, 'stripe_error', message);
+  }
 }
 
 app.http('portal', {
