@@ -130,15 +130,15 @@ export default function Dashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ interval }),
       });
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      if (data.url) {
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.url) {
         window.location.href = data.url as string;
         return;
       }
-      throw new Error();
+      setError(data?.error?.message || 'Could not start checkout. Please try again.');
+      setBusy(null);
     } catch {
-      setError('Could not start checkout. Billing may not be configured yet.');
+      setError('Could not start checkout. Please try again.');
       setBusy(null);
     }
   }
@@ -148,13 +148,13 @@ export default function Dashboard() {
     setError(null);
     try {
       const res = await fetch('/api/portal', { method: 'POST' });
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      if (data.url) {
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.url) {
         window.location.href = data.url as string;
         return;
       }
-      throw new Error();
+      setError(data?.error?.message || 'Could not open the billing portal.');
+      setBusy(null);
     } catch {
       setError('Could not open the billing portal.');
       setBusy(null);

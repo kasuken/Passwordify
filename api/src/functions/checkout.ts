@@ -12,7 +12,7 @@ interface CheckoutBody {
  * POST /api/checkout — start a Stripe Checkout session for the Pro plan.
  * Body: { interval: "monthly" | "annual" }. Returns { url } to redirect to.
  */
-export async function checkoutHandler(request: HttpRequest, _context: InvocationContext): Promise<HttpResponseInit> {
+export async function checkoutHandler(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   if (request.method === 'OPTIONS') {
     return preflightResponse();
   }
@@ -36,20 +36,6 @@ export async function checkoutHandler(request: HttpRequest, _context: Invocation
   }
   const interval: BillingInterval = body.interval === 'annual' ? 'annual' : 'monthly';
 
-  const stripe = getStripe();
-  const user = await getOrCreateUser(principal.userId, principal.userDetails ?? '', principal.identityProvider ?? '');
-
-  // Reuse or create the Stripe customer, keyed to our stable userId.
-  let customerId = user.stripeCustomerId;
-  if (!customerId) {
-    const customer = await stripe.customers.create({
-      email: user.email || undefined,
-      metadata: { userId: user.userId },
-    });
-    customerId = customer.id;
-    await upsertUser({ ...user, stripeCustomerId: customerId, updatedAt: new Date().toISOString() });
-  }
-
   let priceId: string;
   try {
     priceId = priceIdFor(interval);
@@ -57,19 +43,41 @@ export async function checkoutHandler(request: HttpRequest, _context: Invocation
     return errorResponse(503, 'price_unconfigured', err instanceof Error ? err.message : 'Price not configured.');
   }
 
-  const site = siteUrl();
-  const session = await stripe.checkout.sessions.create({
-    mode: 'subscription',
-    customer: customerId,
-    line_items: [{ price: priceId, quantity: 1 }],
-    client_reference_id: user.userId,
-    subscription_data: { metadata: { userId: user.userId } },
-    allow_promotion_codes: true,
-    success_url: `${site}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${site}/checkout/cancel`,
-  });
+  const stripe = getStripe();
+  const user = await getOrCreateUser(principal.userId, principal.userDetails ?? '', principal.identityProvider ?? '');
 
-  return json(200, { url: session.url });
+  try {
+    // Reuse or create the Stripe customer, keyed to our stable userId.
+    let customerId = user.stripeCustomerId;
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: user.email || undefined,
+        metadata: { userId: user.userId },
+      });
+      customerId = customer.id;
+      await upsertUser({ ...user, stripeCustomerId: customerId, updatedAt: new Date().toISOString() });
+    }
+
+    const site = siteUrl();
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      customer: customerId,
+      line_items: [{ price: priceId, quantity: 1 }],
+      client_reference_id: user.userId,
+      subscription_data: { metadata: { userId: user.userId } },
+      allow_promotion_codes: true,
+      success_url: `${site}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${site}/checkout/cancel`,
+    });
+
+    return json(200, { url: session.url });
+  } catch (err) {
+    // Surface the real Stripe reason (bad key scope, test/live mismatch,
+    // missing price, etc.) instead of a generic failure.
+    const message = err instanceof Error ? err.message : 'Stripe request failed.';
+    context.error('Stripe checkout failed', err);
+    return errorResponse(502, 'stripe_error', message);
+  }
 }
 
 app.http('checkout', {
