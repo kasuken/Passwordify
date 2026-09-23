@@ -277,7 +277,7 @@ export default function Dashboard() {
           </p>
         )}
         <p className="mt-4 text-xs text-muted">
-          Authenticate every request with <code className="chip-mono">Authorization: Bearer &lt;key&gt;</code>.
+          Authenticate every request with <code className="chip-mono">X-API-Key: &lt;key&gt;</code>.
           See the <a href="/docs" className="text-accent underline-offset-2 hover:underline">docs</a>.
         </p>
       </div>
