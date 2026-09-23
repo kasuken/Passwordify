@@ -29,8 +29,9 @@ rather than a portfolio project.
 - **Real API key issuance/rotation** — ✅ shipped. `POST/DELETE /api/keys` issues/rotates/revokes
   `pk_live_*` keys, stored as SHA-256 hashes in Azure Table Storage; `authorize()` validates them.
 - **Stripe billing** — ✅ shipped. Two tiers only, **Free** and **Pro** ($2/mo, $1.50/mo billed
-  annually). Stripe Checkout (`/api/checkout`), Billing Portal (`/api/portal`) and a signed
-  webhook (`/api/stripe/webhook`) keep each user's plan in sync.
+  annually). Stripe Checkout (`/api/checkout`) and Billing Portal (`/api/portal`). No webhook:
+  plans are verified live against Stripe and cached (dashboard on every load; API path on a 12 h
+  TTL — see `api/src/lib/billing.ts`).
 - **Per-key rate limiting + quota backed by a store** — ✅ shipped. Plan quotas live in
   `api/src/lib/plans.ts`; monthly usage is metered in Table Storage (`pwfyusage`), plus a coarse
   in-memory per-hour burst limit. (Burst limit is still per-instance — move to a shared store /

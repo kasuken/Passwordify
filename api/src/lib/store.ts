@@ -1,4 +1,4 @@
-import { TableClient, TableServiceClient, odata, RestError } from '@azure/data-tables';
+import { TableClient, TableServiceClient, RestError } from '@azure/data-tables';
 import type { PlanId } from './plans';
 
 /**
@@ -61,6 +61,8 @@ export interface UserRecord {
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
   subscriptionStatus?: string;
+  /** ISO timestamp of the last live plan verification against Stripe. */
+  planCheckedAt?: string;
   keyHash?: string;
   keyPrefix?: string;
   keyLast4?: string;
@@ -78,6 +80,7 @@ function toUser(entity: Record<string, unknown>): UserRecord {
     stripeCustomerId: (entity.stripeCustomerId as string) || undefined,
     stripeSubscriptionId: (entity.stripeSubscriptionId as string) || undefined,
     subscriptionStatus: (entity.subscriptionStatus as string) || undefined,
+    planCheckedAt: (entity.planCheckedAt as string) || undefined,
     keyHash: (entity.keyHash as string) || undefined,
     keyPrefix: (entity.keyPrefix as string) || undefined,
     keyLast4: (entity.keyLast4 as string) || undefined,
@@ -105,17 +108,6 @@ export async function getUser(userId: string): Promise<UserRecord | null> {
     if (isNotFound(err)) return null;
     throw err;
   }
-}
-
-export async function getUserByCustomerId(customerId: string): Promise<UserRecord | null> {
-  await ensureTables();
-  const iter = table(USERS_TABLE).listEntities({
-    queryOptions: { filter: odata`PartitionKey eq 'user' and stripeCustomerId eq ${customerId}` },
-  });
-  for await (const entity of iter) {
-    return toUser(entity as unknown as Record<string, unknown>);
-  }
-  return null;
 }
 
 export async function upsertUser(user: UserRecord): Promise<void> {
@@ -157,6 +149,8 @@ export interface KeyRecord {
   prefix: string;
   last4: string;
   createdAt: string;
+  /** ISO timestamp of the last live plan verification for this key. */
+  planCheckedAt?: string;
 }
 
 export async function getKeyByHash(keyHash: string): Promise<KeyRecord | null> {
@@ -172,6 +166,7 @@ export async function getKeyByHash(keyHash: string): Promise<KeyRecord | null> {
       prefix: (e.prefix as string) ?? '',
       last4: (e.last4 as string) ?? '',
       createdAt: (e.createdAt as string) ?? '',
+      planCheckedAt: (e.planCheckedAt as string) || undefined,
     };
   } catch (err) {
     if (isNotFound(err)) return null;
@@ -182,7 +177,17 @@ export async function getKeyByHash(keyHash: string): Promise<KeyRecord | null> {
 export async function putKey(key: KeyRecord): Promise<void> {
   await ensureTables();
   await table(KEYS_TABLE).upsertEntity(
-    { partitionKey: 'key', rowKey: key.keyHash, userId: key.userId, plan: key.plan, active: key.active, prefix: key.prefix, last4: key.last4, createdAt: key.createdAt },
+    clean({
+      partitionKey: 'key',
+      rowKey: key.keyHash,
+      userId: key.userId,
+      plan: key.plan,
+      active: key.active,
+      prefix: key.prefix,
+      last4: key.last4,
+      createdAt: key.createdAt,
+      planCheckedAt: key.planCheckedAt,
+    }) as { partitionKey: string; rowKey: string } & Record<string, unknown>,
     'Replace'
   );
 }
@@ -196,11 +201,11 @@ export async function deactivateKey(keyHash: string): Promise<void> {
   }
 }
 
-/** Propagate a plan change to a user's currently-active key. */
-export async function setKeyPlan(keyHash: string, plan: PlanId): Promise<void> {
+/** Record a key's current plan and when it was last verified against Stripe. */
+export async function setKeyPlanChecked(keyHash: string, plan: PlanId, checkedAt: string): Promise<void> {
   await ensureTables();
   try {
-    await table(KEYS_TABLE).updateEntity({ partitionKey: 'key', rowKey: keyHash, plan }, 'Merge');
+    await table(KEYS_TABLE).updateEntity({ partitionKey: 'key', rowKey: keyHash, plan, planCheckedAt: checkedAt }, 'Merge');
   } catch (err) {
     if (!isNotFound(err)) throw err;
   }

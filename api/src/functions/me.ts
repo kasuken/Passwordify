@@ -3,6 +3,7 @@ import { getClientPrincipal, isAuthenticated } from '../lib/principal';
 import { planConfig } from '../lib/plans';
 import { getOrCreateUser, getUsage, isStoreConfigured } from '../lib/store';
 import { isStripeConfigured } from '../lib/stripe';
+import { refreshUserPlanNow } from '../lib/billing';
 import { errorResponse, json, preflightResponse } from '../lib/respond';
 
 /**
@@ -24,7 +25,9 @@ export async function meHandler(request: HttpRequest, _context: InvocationContex
     return errorResponse(503, 'store_unconfigured', 'Account storage is not configured yet. Set PASSWORDIFY_STORAGE_CONNECTION.');
   }
 
-  const user = await getOrCreateUser(principal.userId, principal.userDetails ?? '', principal.identityProvider ?? '');
+  let user = await getOrCreateUser(principal.userId, principal.userDetails ?? '', principal.identityProvider ?? '');
+  // The dashboard always shows a live view: verify the plan against Stripe now.
+  user = await refreshUserPlanNow(user);
   const cfg = planConfig(user.plan);
   const usage = await getUsage(`user:${user.userId}`);
 

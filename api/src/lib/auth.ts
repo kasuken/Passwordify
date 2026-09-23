@@ -1,5 +1,6 @@
 import type { HttpRequest } from '@azure/functions';
 import { hashApiKey } from './apikey';
+import { planForKey } from './billing';
 import { PLANS, planConfig, type PlanId } from './plans';
 import { getKeyByHash, incrementUsage, isStoreConfigured } from './store';
 
@@ -201,6 +202,10 @@ interface ResolvedKey {
   plan: PlanId;
   /** Partition used for monthly usage accounting. */
   usagePartition: string;
+  /** Present for dashboard-provisioned keys, used to verify entitlement live. */
+  userId?: string;
+  keyHash?: string;
+  planCheckedAt?: string;
 }
 
 async function resolveKey(key: string): Promise<ResolvedKey | AuthFailure> {
@@ -219,7 +224,14 @@ async function resolveKey(key: string): Promise<ResolvedKey | AuthFailure> {
   if (isStoreConfigured()) {
     const record = await getKeyByHash(hashApiKey(key));
     if (record && record.active) {
-      return { keyId: record.keyHash, plan: record.plan, usagePartition: `user:${record.userId}` };
+      return {
+        keyId: record.keyHash,
+        plan: record.plan,
+        usagePartition: `user:${record.userId}`,
+        userId: record.userId,
+        keyHash: record.keyHash,
+        planCheckedAt: record.planCheckedAt,
+      };
     }
   }
 
@@ -237,7 +249,14 @@ export async function authorize(request: HttpRequest): Promise<AuthzResult> {
     return { ...resolved, headers: {} };
   }
 
-  const cfg = planConfig(resolved.plan);
+  // For dashboard-provisioned keys, verify entitlement against Stripe (cached
+  // with a TTL, so this only hits Stripe at most once per key per window).
+  let plan = resolved.plan;
+  if (resolved.userId && resolved.keyHash) {
+    plan = await planForKey(resolved.userId, resolved.keyHash, resolved.plan, resolved.planCheckedAt);
+  }
+
+  const cfg = planConfig(plan);
 
   // Burst limit (per hour).
   const rl = rateLimit(resolved.keyId, cfg.burstPerHour, HOUR_MS);
@@ -270,7 +289,7 @@ export async function authorize(request: HttpRequest): Promise<AuthzResult> {
     }
   }
 
-  return { ok: true, keyId: resolved.keyId, plan: resolved.plan, headers };
+  return { ok: true, keyId: resolved.keyId, plan, headers };
 }
 
 export { PLANS };

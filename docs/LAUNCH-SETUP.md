@@ -39,20 +39,21 @@ first, then repeat in Live mode.
 
 ---
 
-## 2. Create the Stripe webhook
+## 2. No webhook required ✅
 
-The webhook keeps each user's plan in sync after payment.
+Passwordify verifies a customer's plan **live against Stripe** and caches the
+result — there is no webhook to create or secret to manage.
 
-1. Stripe Dashboard → **Developers → Webhooks → Add endpoint**
-2. **Endpoint URL:** `https://passwordify.xyz/api/stripe/webhook`
-3. **Events to send** (select these):
-   - `checkout.session.completed`
-   - `customer.subscription.created`
-   - `customer.subscription.updated`
-   - `customer.subscription.deleted`
-4. Save, then copy the **Signing secret** (`whsec_...`) → `STRIPE_WEBHOOK_SECRET`.
+- **Dashboard** (`/api/me`): checks Stripe on every load, so the plan shown is
+  always current.
+- **API hot path** (`authorize()`): reads the cached plan and re-verifies against
+  Stripe at most **once per key every 12 hours** (`PLAN_TTL_MS` in
+  `api/src/lib/billing.ts`), so normal requests never call Stripe.
 
-> Create a **separate** webhook (and secret) for Test vs Live mode.
+**Trade-off to know:** a cancellation or failed payment is reflected on the API
+within the 12-hour TTL (instantly on the next dashboard visit), rather than in
+seconds. For this product that's an accepted trade for zero webhook setup. Lower
+the TTL for faster enforcement.
 
 ---
 
@@ -76,8 +77,7 @@ Azure Portal → your Static Web App → **Settings → Configuration** →
 | Name | Value | Purpose |
 |------|-------|---------|
 | `PASSWORDIFY_STORAGE_CONNECTION` | *(storage connection string)* | Users, keys, usage |
-| `STRIPE_SECRET_KEY` | `sk_live_...` | Stripe API access |
-| `STRIPE_WEBHOOK_SECRET` | `whsec_...` | Verify webhook signatures |
+| `STRIPE_SECRET_KEY` | `sk_live_...` | Stripe API access (also used for live plan checks) |
 | `STRIPE_PRICE_PRO_MONTHLY` | `price_...` | $2/mo price |
 | `STRIPE_PRICE_PRO_ANNUAL` | `price_...` | $18/yr price |
 | `SITE_URL` | `https://passwordify.xyz` | Checkout redirect URLs |
@@ -105,7 +105,6 @@ the signed-in user from the `x-ms-client-principal` header.
 ## 6. Go-live checklist
 
 - [ ] Stripe **Live mode**: product + 2 prices created, Price IDs copied.
-- [ ] Live **webhook** created, signing secret copied.
 - [ ] Storage account created, connection string copied.
 - [ ] All app settings above filled with **live** values, saved.
 - [ ] Billing Portal activated in Stripe.
@@ -114,8 +113,8 @@ the signed-in user from the `x-ms-client-principal` header.
   1. Sign in at `/dashboard` → **Create key** → copy it.
   2. `curl https://passwordify.xyz/api/v1/validate -H "Authorization: Bearer <key>" -H "Content-Type: application/json" -d '{"password":"hunter2"}'` → 200.
   3. `/pricing` → toggle Annual → **Upgrade to Pro** → complete Stripe **test** checkout.
-  4. Back on `/dashboard`, plan shows **Pro** (webhook fired).
-  5. **Manage billing** opens the Stripe portal.
+  4. Back on `/dashboard`, plan shows **Pro** (verified live from Stripe on load).
+  5. **Manage billing** opens the Stripe portal; cancel there → dashboard shows Free on next load.
 - [ ] Confirm `robots.txt` + `sitemap-index.xml` resolve; submit sitemap in
       Google Search Console.
 
@@ -127,14 +126,16 @@ the signed-in user from the `x-ms-client-principal` header.
 |--------|-------|
 | Plan quotas (Free/Pro numbers) | `api/src/lib/plans.ts` |
 | API-key validation + quota enforcement | `api/src/lib/auth.ts` (`authorize`) |
+| Live plan verification + TTL cache | `api/src/lib/billing.ts` |
 | Data access (Table Storage) | `api/src/lib/store.ts` |
-| Stripe client + price/interval mapping | `api/src/lib/stripe.ts` |
-| Checkout / Portal / Webhook | `api/src/functions/{checkout,portal,stripe-webhook}.ts` |
+| Stripe client + price mapping + live check | `api/src/lib/stripe.ts` |
+| Checkout / Portal | `api/src/functions/{checkout,portal}.ts` |
 | Dashboard data + key management | `api/src/functions/{me,keys}.ts` |
 | Dashboard UI | `src/components/react/Dashboard.tsx`, `src/pages/dashboard.astro` |
 | Pricing page (toggle, schema) | `src/pages/pricing.astro` |
 
 ### Fulfillment note
-Plan changes are automatic via the webhook. **Delivering the API key is
-self-serve**: after upgrading, the user creates/rotates their key on the
-dashboard. There is no email step yet (a good next task — see ROADMAP).
+Plan changes are detected by verifying the subscription live against Stripe
+(cached with a 12 h TTL — see §2). **Delivering the API key is self-serve**:
+after upgrading, the user creates/rotates their key on the dashboard. There is no
+email step yet (a good next task — see ROADMAP).

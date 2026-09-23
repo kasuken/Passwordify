@@ -9,7 +9,6 @@
     "PASSWORDIFY_STORAGE_CONNECTION": "UseDevelopmentStorage=true",
 
     "STRIPE_SECRET_KEY": "sk_test_replace_me",
-    "STRIPE_WEBHOOK_SECRET": "whsec_replace_me",
     "STRIPE_PRICE_PRO_MONTHLY": "price_replace_me_monthly",
     "STRIPE_PRICE_PRO_ANNUAL": "price_replace_me_annual",
     "SITE_URL": "http://localhost:4280"
