@@ -1,5 +1,5 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
-import { authenticate, rateLimitFor, rateLimitHeaders } from '../lib/auth';
+import { authorize } from '../lib/auth';
 import { checkBreach, checkBreachByPrefix } from '../lib/breach';
 import { errorResponse, json, preflightResponse } from '../lib/respond';
 
@@ -17,16 +17,11 @@ export async function breachHandler(request: HttpRequest, _context: InvocationCo
     return preflightResponse();
   }
 
-  const auth = authenticate(request);
-  if (!auth.ok) {
-    return errorResponse(auth.status, auth.code, auth.message);
+  const authz = await authorize(request);
+  if (!authz.ok) {
+    return errorResponse(authz.status, authz.code, authz.message, authz.headers);
   }
-
-  const rl = rateLimitFor(auth.keyId);
-  const rlHeaders = rateLimitHeaders(rl);
-  if (!rl.ok) {
-    return errorResponse(429, 'rate_limited', 'Rate limit exceeded. Please slow down and try again later.', rlHeaders);
-  }
+  const rlHeaders = authz.headers;
 
   let body: BreachRequestBody;
   try {

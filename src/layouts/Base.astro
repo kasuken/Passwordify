@@ -10,16 +10,41 @@ interface Props {
   description?: string;
   /** Path only, e.g. "/pricing"; canonical is derived from Astro.site. */
   ogImage?: string;
+  /** Optional page-specific JSON-LD structured data (object or array). */
+  schema?: Record<string, unknown> | Record<string, unknown>[];
+  /** Keep the page out of search indexes (transactional/dead-end pages). */
+  noindex?: boolean;
 }
 
 const {
-  title = 'Passwordify — Password security tools & developer API',
-  description = 'Privacy-first password tools that run in your browser — strength analysis, breach checking, and a cryptographically secure generator — plus a REST API to add the same checks to your app.',
+  title = 'Passwordify — Password Security API & Free Privacy-First Tools',
+  description = 'Free, private password strength, breach and generator tools that run in your browser — plus a developer API for zxcvbn strength scoring, k-anonymity breach checks and NIST 800-63B validation. A simple, self-serve alternative to enterprise-priced breach APIs.',
   ogImage = '/og.png',
+  schema,
+  noindex = false,
 } = Astro.props;
 
-const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://passwordify.xyz').href;
-const ogUrl = new URL(ogImage, Astro.site ?? 'https://passwordify.xyz').href;
+const siteBase = Astro.site ?? 'https://www.passwordify.xyz';
+const canonical = new URL(Astro.url.pathname, siteBase).href;
+const ogUrl = new URL(ogImage, siteBase).href;
+
+// Sitewide structured data — helps search engines understand the brand (E-E-A-T)
+// and can enable a sitelinks search box / knowledge panel.
+const orgSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Passwordify',
+  url: siteBase.toString(),
+  logo: new URL('/favicon.svg', siteBase).href,
+  sameAs: ['https://github.com/kasuken/Passwordify'],
+};
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Passwordify',
+  url: siteBase.toString(),
+};
+const pageSchemas = schema ? (Array.isArray(schema) ? schema : [schema]) : [];
 ---
 
 <!doctype html>
@@ -29,6 +54,7 @@ const ogUrl = new URL(ogImage, Astro.site ?? 'https://passwordify.xyz').href;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
     <link rel="canonical" href={canonical} />
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -50,6 +76,10 @@ const ogUrl = new URL(ogImage, Astro.site ?? 'https://passwordify.xyz').href;
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogUrl} />
     <meta name="generator" content={Astro.generator} />
+
+    <script type="application/ld+json" set:html={JSON.stringify(orgSchema)} />
+    <script type="application/ld+json" set:html={JSON.stringify(websiteSchema)} />
+    {pageSchemas.map((s) => <script type="application/ld+json" set:html={JSON.stringify(s)} />)}
 
     <!-- Apply saved theme before paint to avoid a flash. -->
     <script is:inline>

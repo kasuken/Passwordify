@@ -123,7 +123,7 @@ const tdMono = 'px-4 py-2.5 font-mono text-ink';
           <div class="mt-6 grid gap-3 sm:grid-cols-2">
             <div class="rounded-[var(--radius-md)] border border-line bg-surface-2 p-4">
               <p class={label}>Base URL</p>
-              <code class="chip-mono mt-2 inline-block">https://passwordify.xyz/api</code>
+              <code class="chip-mono mt-2 inline-block">https://www.passwordify.xyz/api</code>
             </div>
             <div class="rounded-[var(--radius-md)] border border-line bg-surface-2 p-4">
               <p class={label}>Format</p>
@@ -166,7 +166,7 @@ const tdMono = 'px-4 py-2.5 font-mono text-ink';
             </div>
             <div class="terminal-body">
 <code><span class="tok-com"># Try it immediately with the free demo key (rate-limited)</span>
-<span class="tok-fn">curl</span> https://passwordify.xyz<span class="tok-str">/api/v1/strength</span> \
+<span class="tok-fn">curl</span> https://www.passwordify.xyz<span class="tok-str">/api/v1/strength</span> \
   -H <span class="tok-str">"Authorization: Bearer pk_test_passwordify_demo"</span> \
   -H <span class="tok-str">"Content-Type: application/json"</span> \
   -d <span class="tok-str">'&#123;"password":"Tr0ub4dor92!"&#125;'</span>
@@ -393,7 +393,7 @@ X-RateLimit-Reset: 1718900000
               </div>
               <div class="terminal-body">
 <code><span class="tok-com"># Score a password as the user types</span>
-<span class="tok-fn">curl</span> https://passwordify.xyz<span class="tok-str">/api/v1/strength</span> \
+<span class="tok-fn">curl</span> https://www.passwordify.xyz<span class="tok-str">/api/v1/strength</span> \
   -H <span class="tok-str">"Authorization: Bearer pk_live_..."</span> \
   -H <span class="tok-str">"Content-Type: application/json"</span> \
   -d <span class="tok-str">'&#123;"password":"Tr0ub4dor92!","userInputs":["emanuele","passwordify"]&#125;'</span>
@@ -463,7 +463,7 @@ X-RateLimit-Reset: 1718900000
               </div>
               <div class="terminal-body">
 <code><span class="tok-com"># "5BAA6" is the SHA-1 prefix of the word "password" — always breached</span>
-<span class="tok-fn">curl</span> https://passwordify.xyz<span class="tok-str">/api/v1/breach</span> \
+<span class="tok-fn">curl</span> https://www.passwordify.xyz<span class="tok-str">/api/v1/breach</span> \
   -H <span class="tok-str">"Authorization: Bearer pk_live_..."</span> \
   -H <span class="tok-str">"Content-Type: application/json"</span> \
   -d <span class="tok-str">'&#123;"sha1Prefix":"5BAA6"&#125;'</span>
@@ -532,7 +532,7 @@ X-RateLimit-Reset: 1718900000
               </div>
               <div class="terminal-body">
 <code><span class="tok-com"># Screen a password at signup — strength + breach + policy</span>
-<span class="tok-fn">curl</span> https://passwordify.xyz<span class="tok-str">/api/v1/validate</span> \
+<span class="tok-fn">curl</span> https://www.passwordify.xyz<span class="tok-str">/api/v1/validate</span> \
   -H <span class="tok-str">"Authorization: Bearer pk_live_..."</span> \
   -H <span class="tok-str">"Content-Type: application/json"</span> \
   -d <span class="tok-str">'&#123;"password":"Summer2024!","policy":&#123;"minLength":12,"minScore":3&#125;&#125;'</span>
@@ -647,7 +647,7 @@ X-RateLimit-Reset: 1718900000
               </div>
               <div class="terminal-body">
 <code><span class="tok-com"># A memorable diceware passphrase, two variants</span>
-<span class="tok-fn">curl</span> https://passwordify.xyz<span class="tok-str">/api/v1/generate</span> \
+<span class="tok-fn">curl</span> https://www.passwordify.xyz<span class="tok-str">/api/v1/generate</span> \
   -H <span class="tok-str">"Authorization: Bearer pk_live_..."</span> \
   -H <span class="tok-str">"Content-Type: application/json"</span> \
   -d <span class="tok-str">'&#123;"mode":"passphrase","words":5,"separator":"-","count":2&#125;'</span>
@@ -723,7 +723,7 @@ X-RateLimit-Reset: 1718900000
                   <span class="terminal-title">validate.sh</span>
                 </div>
                 <div class="terminal-body">
-<code><span class="tok-fn">curl</span> https://passwordify.xyz<span class="tok-str">/api/v1/validate</span> \
+<code><span class="tok-fn">curl</span> https://www.passwordify.xyz<span class="tok-str">/api/v1/validate</span> \
   -H <span class="tok-str">"Authorization: Bearer pk_live_..."</span> \
   -H <span class="tok-str">"Content-Type: application/json"</span> \
   -d <span class="tok-str">'&#123;"password":"Summer2024!"&#125;'</span></code>
@@ -740,7 +740,7 @@ X-RateLimit-Reset: 1718900000
                   <span class="terminal-title">validate.js</span>
                 </div>
                 <div class="terminal-body">
-<code><span class="tok-key">const</span> res = <span class="tok-key">await</span> <span class="tok-fn">fetch</span>(<span class="tok-str">"https://passwordify.xyz/api/v1/validate"</span>, <span class="tok-punc">&#123;</span>
+<code><span class="tok-key">const</span> res = <span class="tok-key">await</span> <span class="tok-fn">fetch</span>(<span class="tok-str">"https://www.passwordify.xyz/api/v1/validate"</span>, <span class="tok-punc">&#123;</span>
   <span class="tok-prop">method</span>: <span class="tok-str">"POST"</span>,
   <span class="tok-prop">headers</span>: <span class="tok-punc">&#123;</span>
     <span class="tok-str">"Authorization"</span>: <span class="tok-str">"Bearer pk_live_..."</span>,
@@ -772,7 +772,7 @@ var payload = JsonSerializer.<span class="tok-fn">Serialize</span>(<span class="
 var content = <span class="tok-key">new</span> <span class="tok-fn">StringContent</span>(payload, Encoding.UTF8, <span class="tok-str">"application/json"</span>);
 
 var response = <span class="tok-key">await</span> client.<span class="tok-fn">PostAsync</span>(
-    <span class="tok-str">"https://passwordify.xyz/api/v1/validate"</span>, content);
+    <span class="tok-str">"https://www.passwordify.xyz/api/v1/validate"</span>, content);
 
 Console.<span class="tok-fn">WriteLine</span>(<span class="tok-key">await</span> response.Content.<span class="tok-fn">ReadAsStringAsync</span>());</code>
                 </div>
@@ -791,7 +791,7 @@ Console.<span class="tok-fn">WriteLine</span>(<span class="tok-key">await</span>
 <code><span class="tok-key">import</span> requests
 
 response = requests.<span class="tok-fn">post</span>(
-    <span class="tok-str">"https://passwordify.xyz/api/v1/validate"</span>,
+    <span class="tok-str">"https://www.passwordify.xyz/api/v1/validate"</span>,
     headers=<span class="tok-punc">&#123;</span><span class="tok-str">"Authorization"</span>: <span class="tok-str">"Bearer pk_live_..."</span><span class="tok-punc">&#125;</span>,
     json=<span class="tok-punc">&#123;</span><span class="tok-str">"password"</span>: <span class="tok-str">"Summer2024!"</span><span class="tok-punc">&#125;</span>,
 )

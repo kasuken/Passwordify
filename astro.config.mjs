@@ -6,11 +6,17 @@ import tailwindcss from '@tailwindcss/vite';
 
 // https://astro.build
 export default defineConfig({
-  site: 'https://passwordify.xyz',
+  site: 'https://www.passwordify.xyz',
   // Astro's HTML compressor strips whitespace-only text nodes between prose and
   // inline elements, which drops legitimate spaces before/after inline <span>s.
   compressHTML: false,
-  integrations: [react(), sitemap()],
+  integrations: [
+    react(),
+    sitemap({
+      // Keep transactional / post-payment dead-ends out of the index.
+      filter: (page) => !page.includes('/checkout/'),
+    }),
+  ],
   vite: {
     plugins: [tailwindcss()],
   },

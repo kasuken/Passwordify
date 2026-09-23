@@ -1,0 +1,26 @@
+---
+import Base from '../layouts/Base.astro';
+import Dashboard from '../components/react/Dashboard.tsx';
+---
+
+<Base
+  title="Dashboard — Passwordify"
+  description="Manage your Passwordify API key, monitor usage, and upgrade your plan."
+>
+  <section class="section">
+    <div class="container-x">
+      <div class="mx-auto max-w-2xl">
+        <span class="eyebrow">
+          <span class="inline-block h-1.5 w-1.5 rounded-full bg-accent"></span>
+          Dashboard
+        </span>
+        <h1 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Your account</h1>
+        <p class="mt-3 text-muted">Manage your API key, track usage, and handle billing.</p>
+
+        <div class="mt-8">
+          <Dashboard client:only="react" />
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>

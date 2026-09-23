@@ -143,7 +143,7 @@ const reasons = [
           full verdict back. Swap in a live key when you're ready for production traffic.
         </p>
         <ul class="mt-6 flex flex-col gap-3 text-muted">
-          <li class="flex items-start gap-3"><span class="mt-1 text-accent"><ToolIcon name="check" size={16} /></span> Base URL <span class="chip-mono">https://passwordify.xyz/api</span></li>
+          <li class="flex items-start gap-3"><span class="mt-1 text-accent"><ToolIcon name="check" size={16} /></span> Base URL <span class="chip-mono">https://www.passwordify.xyz/api</span></li>
           <li class="flex items-start gap-3"><span class="mt-1 text-accent"><ToolIcon name="check" size={16} /></span> Bearer-token auth on every request</li>
           <li class="flex items-start gap-3"><span class="mt-1 text-accent"><ToolIcon name="check" size={16} /></span> JSON in, JSON out — always</li>
         </ul>
@@ -159,7 +159,7 @@ const reasons = [
           <span class="terminal-title">quickstart.sh</span>
         </div>
         <div class="terminal-body">
-<code><span class="tok-fn">curl</span> https://passwordify.xyz<span class="tok-str">/api/v1/validate</span> \
+<code><span class="tok-fn">curl</span> https://www.passwordify.xyz<span class="tok-str">/api/v1/validate</span> \
   -H <span class="tok-str">"Authorization: Bearer pk_test_passwordify_demo"</span> \
   -H <span class="tok-str">"Content-Type: application/json"</span> \
   -d <span class="tok-str">'&#123;"password":"hunter2"&#125;'</span>
@@ -182,16 +182,16 @@ const reasons = [
       <div class="relative overflow-hidden rounded-[var(--radius-xl)] border border-line bg-surface p-10 text-center sm:p-16">
         <div class="glow-accent"></div>
         <div class="relative">
-          <span class="eyebrow justify-center">Early access</span>
+          <span class="eyebrow justify-center">Get started</span>
           <h2 class="mx-auto mt-3 max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
             Need a production key?
           </h2>
           <p class="mx-auto mt-4 max-w-xl text-lg text-muted">
-            Managed keys, dashboards and usage-based billing are rolling out now. Start
-            building against the demo key today and grab a production key when you're ready.
+            Sign in and create your API key in seconds — no sales call, no waitlist. Start on the
+            Free plan and upgrade to Pro from $1.50/mo when you need more volume.
           </p>
           <div class="mt-8 flex flex-wrap justify-center gap-3">
-            <a href="mailto:hello@passwordify.xyz?subject=Passwordify%20API%20early%20access" class="btn btn-primary">Request early access</a>
+            <a href="/dashboard" class="btn btn-primary">Get your API key</a>
             <a href="/docs" class="btn btn-secondary">Read the docs</a>
           </div>
         </div>

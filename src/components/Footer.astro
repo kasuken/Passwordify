@@ -15,7 +15,16 @@ const groups = [
     links: [
       { href: '/developers', label: 'API overview' },
       { href: '/docs', label: 'API reference' },
+      { href: '/dashboard', label: 'Dashboard' },
       { href: '/pricing', label: 'Pricing' },
+    ],
+  },
+  {
+    title: 'Solutions',
+    links: [
+      { href: '/password-validation-api', label: 'Password validation API' },
+      { href: '/nist-800-63b-api', label: 'NIST 800-63B API' },
+      { href: '/haveibeenpwned-api-alternative', label: 'HIBP API alternative' },
     ],
   },
   {
@@ -31,7 +40,7 @@ const year = new Date().getFullYear();
 ---
 
 <footer class="mt-24 border-t border-line bg-surface/40">
-  <div class="container-x grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+  <div class="container-x grid gap-10 py-14 sm:grid-cols-2 md:grid-cols-[1.6fr_1fr_1fr_1fr_1fr]">
     <div class="max-w-xs">
       <Logo size={26} />
       <p class="mt-4 text-sm leading-relaxed text-muted">
