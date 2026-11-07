@@ -1,7 +1,7 @@
 {
   "name": "passwordify",
   "type": "module",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Passwordify — privacy-first password security tools and a developer API.",
   "homepage": "https://passwordify.xyz",

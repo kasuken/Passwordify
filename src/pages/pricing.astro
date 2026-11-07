@@ -57,7 +57,7 @@ const faqs = [
   },
   {
     q: 'How do breach checks stay private?',
-    a: 'k-anonymity. The password is hashed with SHA-1 and only the first 5 hex characters of the hash are used to query the breach corpus — the full hash and the password never leave your control.',
+    a: 'k-anonymity towards Have I Been Pwned. The password is hashed with SHA-1 and only the first 5 hex characters of the hash are used to query the breach corpus. In the browser tools nothing else leaves your device. If you call the API, we receive the password (or, if you hash it yourself, the full SHA-1 hash) in memory for the duration of the request and do not log or store it.',
   },
 ];
 

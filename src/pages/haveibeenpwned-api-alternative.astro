@@ -17,7 +17,7 @@ const rows: { label: string; pwfy: string | boolean; hibp: string | boolean; enz
 const faqs = [
   {
     q: 'Is Passwordify a drop-in replacement for Have I Been Pwned?',
-    a: 'For breach screening, it uses the same k-anonymity model HIBP pioneered — you send a short SHA-1 hash prefix, never the password. Where it goes further is bundling zxcvbn strength scoring and a NIST 800-63B verdict into the same API, so you get a full password decision from one provider.',
+    a: 'For breach screening, it queries HIBP using the same k-anonymity model HIBP pioneered — only a short SHA-1 hash prefix is sent upstream. Unlike calling HIBP directly, you send Passwordify the password (or its full hash), which is processed in memory and not stored. Where it goes further is bundling zxcvbn strength scoring and a NIST 800-63B verdict into the same API, so you get a full password decision from one provider.',
   },
   {
     q: 'Isn’t the HIBP Pwned Passwords endpoint already free?',
@@ -58,7 +58,7 @@ const pageSchema = [
           A Have I Been Pwned API <span class="text-accent">alternative</span> for developers.
         </h1>
         <p class="mt-6 max-w-2xl text-lg leading-relaxed text-muted">
-          Passwordify uses the same privacy-preserving k-anonymity breach model HIBP pioneered —
+          Passwordify queries HIBP using the same privacy-preserving k-anonymity model HIBP pioneered —
           then adds zxcvbn strength scoring, a NIST 800-63B verdict, and secure generation behind
           one self-serve key. Honest take: if you only need a raw breach lookup, HIBP’s free Pwned
           Passwords endpoint is great. If you want the whole password decision in one API, read on.

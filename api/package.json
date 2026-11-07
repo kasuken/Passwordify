@@ -1,6 +1,6 @@
 {
   "name": "passwordify-api",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Passwordify backend API - Azure Functions (TypeScript, v4 programming model)",
   "main": "dist/src/functions/*.js",
   "scripts": {

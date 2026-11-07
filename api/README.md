@@ -71,14 +71,14 @@ Response:
 
 ### `POST /api/v1/breach`
 
-Check a password against the [Have I Been Pwned](https://haveibeenpwned.com/API/v3#PwnedPasswords) Pwned Passwords database using k-anonymity (only a 5-character SHA-1 prefix ever leaves this API).
+Check a password against the [Have I Been Pwned](https://haveibeenpwned.com/API/v3#PwnedPasswords) Pwned Passwords database using k-anonymity (this API sends only the 5-character SHA-1 prefix to Have I Been Pwned).
 
-Either send the plaintext password (this API hashes it and does the k-anonymity round trip for you):
+Either send the plaintext password (this API hashes it and does the k-anonymity round trip for you; the plaintext password reaches this API, but only the 5-character prefix is forwarded to Have I Been Pwned):
 ```json
 { "password": "hunter2" }
 ```
 
-...or do the SHA-1 hashing yourself and only send the range query on to us (so the full hash never leaves your client, and we merely proxy the range lookup):
+...or do the SHA-1 hashing yourself and send us the hash split into prefix and suffix. Note that this mode is **not** k-anonymous towards this API: it receives the full SHA-1 hash (prefix + suffix) and matches the suffix itself. Only the 5-character prefix is forwarded to Have I Been Pwned. The advantage is that the plaintext password never reaches us; the full hash does, and it is neither logged nor stored by our code.
 ```json
 { "sha1Prefix": "F3BBB", "sha1Suffix": "D66315AC353C3C6A61F529B3AA0B379E2C4" }
 ```

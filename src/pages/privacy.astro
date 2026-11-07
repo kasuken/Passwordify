@@ -2,12 +2,12 @@
 import Base from '../layouts/Base.astro';
 import ToolIcon from '../components/ToolIcon.astro';
 
-const lastUpdated = 'September 2026';
+const lastUpdated = 'November 2026';
 ---
 
 <Base
   title="Privacy — Passwordify"
-  description="How Passwordify handles passwords and data: client-side browser tools, k-anonymity breach checks, and an API that never logs what you send it."
+  description="How Passwordify handles passwords and data: client-side browser tools, k-anonymity breach checks sent to Have I Been Pwned, and an API whose code does not log or store the passwords you send it."
 >
   <!-- ================= HEADER ================= -->
   <section class="section pb-0">
@@ -52,11 +52,11 @@ const lastUpdated = 'September 2026';
               </li>
               <li class="flex items-start gap-2.5">
                 <span class="mt-0.5 text-accent"><ToolIcon name="check" size={16} /></span>
-                <span>Breach checks use <strong class="text-ink">k-anonymity</strong> — only a 5-character, padded SHA-1 hash prefix ever reaches our servers.</span>
+                <span>Breach checks use <strong class="text-ink">k-anonymity</strong> — only a 5-character SHA-1 hash prefix is sent, directly from your browser to <strong class="text-ink">Have I Been Pwned (HIBP)</strong>, not to our servers. HIBP and its CDN (Cloudflare) also receive your IP address.</span>
               </li>
               <li class="flex items-start gap-2.5">
                 <span class="mt-0.5 text-accent"><ToolIcon name="check" size={16} /></span>
-                <span>The API processes passwords <strong class="text-ink">in memory only</strong>. Never logged. Never persisted. Never seen by a human.</span>
+                <span>If you use the API, the password (or its full SHA-1 hash) is sent to us and processed <strong class="text-ink">in memory only</strong>. Our code does not log or persist it.</span>
               </li>
             </ul>
           </div>
@@ -80,8 +80,15 @@ const lastUpdated = 'September 2026';
           The strength analyzer, breach checker, and generator at
           <code class="chip-mono">/tools</code> require no account and transmit no
           password. There is nothing to opt out of, because there is nothing being
-          collected: no form submission carries your input to a server, and no
+          collected by us: no form submission carries your input to our servers, and no
           analytics script observes what you type into a password field.
+        </p>
+        <p>
+          The one exception is the breach check described below. The strength
+          analyzer runs a breach lookup <strong class="text-ink">automatically as you type</strong>
+          (about 300 ms after you stop typing), so a hash prefix is sent to HIBP
+          without you pressing a button. The breach checker page does the same.
+          Strength scoring and the generator make no network requests.
         </p>
       </div>
 
@@ -95,9 +102,9 @@ const lastUpdated = 'September 2026';
         <ol class="mt-6 space-y-4">
           {
             [
-              'Your browser hashes the password locally with SHA-1. The plaintext never leaves memory, let alone the device.',
-              'Only the first 5 hex characters of that 40-character hash are sent to the API — never the password, never the full hash.',
-              'The API returns every breach record whose hash shares that 5-character prefix, typically a few hundred candidates.',
+              'Your browser hashes the password locally with SHA-1. The plaintext never leaves your device.',
+              'Only the first 5 hex characters of that 40-character hash are sent, directly to HIBP at api.pwnedpasswords.com — never the password, never the full hash, and not to our servers.',
+              'HIBP returns every breach record whose hash shares that 5-character prefix, typically a few hundred candidates.',
               'Your browser compares the full local hash against that list and discards everything else. The match happens on-device.',
             ].map((step, i) => (
               <li class="flex gap-4">
@@ -110,8 +117,12 @@ const lastUpdated = 'September 2026';
           }
         </ol>
         <p class="mt-6 text-muted leading-relaxed">
-          The result: we never receive enough of the hash to identify — let alone
-          reverse — the password you checked.
+          The result: HIBP only ever sees a prefix shared by many different
+          passwords, and we see nothing at all. Because the request goes from your
+          browser to HIBP, HIBP (and Cloudflare, which fronts it) can see your IP
+          address and the usual request metadata alongside the prefix. We do not
+          control how HIBP handles that; see
+          <a href="https://haveibeenpwned.com/Privacy" class="text-accent underline underline-offset-2" rel="noopener">HIBP's privacy notice</a>.
         </p>
       </div>
     </div>
@@ -137,14 +148,22 @@ const lastUpdated = 'September 2026';
           Every request travels over TLS. On arrival, the password exists only in
           process memory for the duration of that single request — it is never
           written to disk, never included in logs or error traces, and never
-          persisted in a database, cache, or backup, on any plan, including
-          self-hosted Enterprise deployments.
+          persisted in a database, cache, or backup, on any plan.
+          Our code does not log request bodies. The hosting platform (Azure) may
+          record standard request metadata such as URL, status code and IP
+          address in its own operational logs.
         </p>
         <p>
-          The only thing we retain per request is metadata needed to run the
-          service: a timestamp and a request count tied to your <strong class="text-ink">API key</strong>,
-          used for billing and rate-limiting. That metadata is never linked back to
-          the password or username you sent — only to the key that made the call.
+          The breach endpoint has two modes. If you send a plaintext password, we
+          hash it and forward only the 5-character prefix to HIBP. If you send a
+          SHA-1 prefix and suffix, we receive the <strong class="text-ink">full hash</strong>, so that
+          mode is not k-anonymous towards us (the plaintext still never reaches us).
+          In both cases only the prefix goes to HIBP.
+        </p>
+        <p>
+          The only thing we store per request is a monthly request counter tied to
+          your account, used for quota enforcement and rate-limiting. It is never
+          linked back to the password or username you sent.
         </p>
       </div>
     </div>
@@ -168,18 +187,22 @@ const lastUpdated = 'September 2026';
         <div class="max-w-md">
           <h3 class="text-lg font-semibold">For API accounts</h3>
           <p class="mt-3 text-muted leading-relaxed">
-            Your account email, for authentication and billing, and per-key usage
-            counts, for rate-limiting and invoicing. That's the entire list — we
+            You sign in with GitHub or Microsoft through Azure Static Web Apps; we
+            store your account identifier, sign-in provider and the email or login
+            name the provider returns, a hash of your API key (with its first and
+            last characters), your plan, and a monthly request count. If you
+            subscribe, Stripe processes your payment and we store your Stripe
+            customer and subscription identifiers (we never see card numbers). We
             don't profile usage patterns or resell account data.
           </p>
         </div>
         <div class="max-w-md">
           <h3 class="text-lg font-semibold">For passwordify.xyz</h3>
           <p class="mt-3 text-muted leading-relaxed">
-            Privacy-respecting, cookieless analytics for aggregate traffic only —
-            page views and referrers, not individuals. No password content, form
-            input, or keystroke is ever collected on the marketing site or the
-            tools.
+            We run no analytics or tracking scripts on the site. Our hosting
+            platform (Azure Static Web Apps) keeps standard server logs. No password
+            content, form input, or keystroke is collected on the marketing site or
+            the tools.
           </p>
         </div>
       </div>
@@ -195,9 +218,11 @@ const lastUpdated = 'September 2026';
           Cookies
         </h2>
         <p class="mt-4 text-muted leading-relaxed">
-          We set essential cookies only — the kind needed to keep you signed in to
-          the developer dashboard. There is no advertising or cross-site tracking
-          cookie anywhere on passwordify.xyz.
+          We set essential cookies only — the authentication cookie needed to keep
+          you signed in to the developer dashboard. There is no advertising or
+          cross-site tracking cookie set by us on passwordify.xyz. Stripe
+          Checkout and the GitHub/Microsoft sign-in pages are hosted by those
+          providers and set their own cookies.
         </p>
         <p class="mt-4 text-muted leading-relaxed">
           Your light/dark theme preference is saved to
@@ -216,6 +241,20 @@ const lastUpdated = 'September 2026';
         <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
           Data requests &amp; contact
         </h2>
+        <h3 class="text-lg font-semibold">Who processes your data</h3>
+        <p class="mt-3 text-muted leading-relaxed">
+          Recipients of data, depending on what you use: Microsoft Azure (hosting,
+          Static Web Apps sign-in, Functions and Table Storage for account and
+          usage records), GitHub or Microsoft (the sign-in provider you choose),
+          Stripe (payments), and Have I Been Pwned with Cloudflare (breach-check
+          hash prefixes and IP address, sent directly from your browser).
+        </p>
+        <p class="mt-4 text-muted leading-relaxed">
+          Account, key and usage records have no automated expiry today; they are
+          kept until you ask us to delete them. You also have the right to lodge a
+          complaint with your data protection supervisory authority (in Italy, the
+          Garante per la protezione dei dati personali).
+        </p>
         <p class="mt-4 text-muted leading-relaxed">
           Under GDPR and CCPA, you have the right to access, correct, export, or
           delete the personal data we hold about you. Since that data is limited to

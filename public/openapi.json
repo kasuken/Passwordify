@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Passwordify API",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Password strength scoring (zxcvbn), k-anonymity breach screening, NIST 800-63B validation and CSPRNG password generation. Authenticate with an API key in the `X-API-Key` header. The public demo key `pk_test_passwordify_demo` works for every endpoint and is rate-limited. Every response carries X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset (hourly burst window, reset in seconds); keys with a monthly quota also receive X-Quota-Limit, X-Quota-Used, X-Quota-Remaining and X-Quota-Period.",
     "license": {
       "name": "MIT",

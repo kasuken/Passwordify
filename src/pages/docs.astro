@@ -449,8 +449,10 @@ X-Quota-Remaining<span class="tok-punc">:</span> <span class="tok-num">0</span>
             </div>
             <p class="mt-3 max-w-2xl leading-relaxed text-muted">
               Check whether a password appears in the Have I Been Pwned corpus
-              using k-anonymity — only a 5-character SHA-1 prefix ever leaves the
-              caller, never the password itself.
+              using k-anonymity towards Have I Been Pwned — only a 5-character SHA-1
+              prefix is forwarded upstream. Note that this API itself receives either the
+              plaintext password or the full SHA-1 hash, so the lookup is not
+              k-anonymous towards Passwordify.
             </p>
 
             <p class={label + ' mb-2 mt-6'}>Parameters</p>
@@ -469,19 +471,19 @@ X-Quota-Remaining<span class="tok-punc">:</span> <span class="tok-num">0</span>
                     <td class={tdMono}>password</td>
                     <td class={td}>string</td>
                     <td class={td}>One of password, or sha1Prefix + sha1Suffix</td>
-                    <td class={td}>Plaintext password to check. Hashed on our side; only a 5-character prefix is sent to the breach corpus.</td>
+                    <td class={td}>Plaintext password to check. Hashed on our side; only a 5-character prefix is forwarded to Have I Been Pwned.</td>
                   </tr>
                   <tr>
                     <td class={tdMono}>sha1Prefix</td>
                     <td class={td}>string</td>
                     <td class={td}>With sha1Suffix</td>
-                    <td class={td}>First 5 hex characters of the SHA-1 hash, for callers that hash client-side. Send together with sha1Suffix.</td>
+                    <td class={td}>First 5 hex characters of the SHA-1 hash, for callers that hash client-side. Send together with sha1Suffix. This is forwarded to Have I Been Pwned.</td>
                   </tr>
                   <tr>
                     <td class={tdMono}>sha1Suffix</td>
                     <td class={td}>string</td>
                     <td class={td}>With sha1Prefix</td>
-                    <td class={td}>The remaining 35 hex characters of the SHA-1 hash. Matched locally against the range returned for the prefix.</td>
+                    <td class={td}>The remaining 35 hex characters of the SHA-1 hash. It is sent to this API (so we receive the full hash) but is not forwarded upstream; it is matched here against the range returned for the prefix.</td>
                   </tr>
                 </tbody>
               </table>
@@ -496,7 +498,7 @@ X-Quota-Remaining<span class="tok-punc">:</span> <span class="tok-num">0</span>
                 <span class="terminal-title">breach.sh</span>
               </div>
               <div class="terminal-body">
-<code><span class="tok-com"># Check a plaintext password (hashed on our side; only a 5-char prefix goes upstream)</span>
+<code><span class="tok-com"># Check a plaintext password (hashed on our side; only a 5-char prefix is forwarded to HIBP)</span>
 <span class="tok-fn">curl</span> https://www.passwordify.xyz/api/v1/breach \
   -H <span class="tok-str">"X-API-Key: pk_live_..."</span> \
   -H <span class="tok-str">"Content-Type: application/json"</span> \
@@ -508,7 +510,8 @@ X-Quota-Remaining<span class="tok-punc">:</span> <span class="tok-num">0</span>
   <span class="tok-prop">"count"</span><span class="tok-punc">:</span> <span class="tok-num">52372427</span>
 <span class="tok-punc">&#125;</span>
 
-<span class="tok-com"># Or hash client-side and send the SHA-1 split into prefix (5) + suffix (35):</span>
+<span class="tok-com"># Or hash client-side and send the SHA-1 split into prefix (5) + suffix (35).
+# The API receives the full hash in this mode; only the prefix is forwarded to HIBP:</span>
 <span class="tok-com"># SHA-1("password") = 5BAA61E4C9B93F3F0682250B6CF8331B7EE68FD8</span>
 <span class="tok-fn">curl</span> https://www.passwordify.xyz/api/v1/breach \
   -H <span class="tok-str">"X-API-Key: pk_live_..."</span> \

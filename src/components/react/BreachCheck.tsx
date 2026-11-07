@@ -174,7 +174,7 @@ export default function BreachCheck() {
             </div>
             <div style={{ marginTop: '0.6rem', color: 'var(--text-faint)', fontFamily: 'var(--font-sans)', fontSize: '0.82rem', whiteSpace: 'normal' }}>
               Only the <span style={{ color: 'var(--accent)', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>{state.prefix}</span> prefix
-              was sent to the API. It returned every hash sharing that prefix, and the match happened here on your device. Your password — and its full hash — never left.
+              was sent to Have I Been Pwned. It returned every hash sharing that prefix, and the match happened here on your device. Your password — and its full hash — never left.
             </div>
           </div>
         </div>

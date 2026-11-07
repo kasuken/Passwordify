@@ -166,8 +166,10 @@ A GitHub Actions workflow builds and deploys the site and API automatically on e
 
 The three free browser tools run **entirely client-side** — passwords are never sent to a
 Passwordify server for strength scoring or generation, and breach checks only ever transmit a
-5-character hash prefix (k-anonymity). The API is stateless: it does not log or persist
-passwords or full password hashes, in requests or in responses.
+5-character hash prefix (k-anonymity) to Have I Been Pwned. The API is a different trust model:
+it receives the plaintext password (or, in `sha1Prefix` + `sha1Suffix` mode, the full SHA-1 hash,
+which is therefore not k-anonymous towards the API). Our code does not log or persist either, but
+it does see them in memory while serving the request.
 
 ## License
 
