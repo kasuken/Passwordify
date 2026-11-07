@@ -29,14 +29,14 @@ Configured in `local.settings.json` (local) or Application Settings (Azure):
 
 ## Authentication
 
-Every endpoint (except `OPTIONS` preflight requests) requires:
+Every endpoint (except `OPTIONS` preflight requests) requires an API key in the `X-API-Key` header (Azure Static Web Apps reserves `Authorization`, so a bearer token never reaches the API when called through the website; `Authorization: Bearer <api-key>` is only accepted as a fallback for direct, non-SWA calls):
 
 ```
-Authorization: Bearer <api-key>
+X-API-Key: <api-key>
 ```
 
 - The demo key `pk_test_passwordify_demo` is always accepted, and is capped at **60 requests/hour** (per Functions host instance).
-- Any key listed in `PASSWORDIFY_API_KEYS` is accepted, capped at 600 requests/hour (per Functions host instance).
+- Any key listed in `PASSWORDIFY_API_KEYS` is accepted, capped at 6,000 requests/hour (treated as Pro) (per Functions host instance).
 - Missing/blank/invalid keys get `401 Unauthorized` with a JSON error body.
 - Requests over the limit get `429 Too Many Requests`.
 

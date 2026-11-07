@@ -1,0 +1,621 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Passwordify API",
+    "version": "1.0.0",
+    "description": "Password strength scoring (zxcvbn), k-anonymity breach screening, NIST 800-63B validation and CSPRNG password generation. Authenticate with an API key in the `X-API-Key` header. The public demo key `pk_test_passwordify_demo` works for every endpoint and is rate-limited. Every response carries X-RateLimit-Limit, X-RateLimit-Remaining and X-RateLimit-Reset (hourly burst window, reset in seconds); keys with a monthly quota also receive X-Quota-Limit, X-Quota-Used, X-Quota-Remaining and X-Quota-Period.",
+    "license": {
+      "name": "MIT",
+      "url": "https://github.com/kasuken/Passwordify/blob/main/LICENSE"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://www.passwordify.xyz/api",
+      "description": "Production"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Passwords",
+      "description": "Stateless password checks and generation."
+    }
+  ],
+  "paths": {
+    "/v1/strength": {
+      "post": {
+        "tags": [
+          "Passwords"
+        ],
+        "operationId": "scoreStrength",
+        "summary": "Score a password with zxcvbn",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StrengthRequest"
+              },
+              "example": {
+                "password": "Summer2024!",
+                "userInputs": [
+                  "emanuele",
+                  "passwordify"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Strength result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StrengthResponse"
+                },
+                "example": {
+                  "score": 2,
+                  "guesses": 10010000,
+                  "entropyBits": 23.254938638385443,
+                  "crackTimeOfflineFast": {
+                    "seconds": 0.001001,
+                    "display": "less than a second"
+                  },
+                  "crackTimeOnline": {
+                    "seconds": 360360000,
+                    "display": "11 years"
+                  },
+                  "feedback": {
+                    "warning": null,
+                    "suggestions": [
+                      "Add more words that are less common.",
+                      "Capitalize more than the first letter."
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/v1/breach": {
+      "post": {
+        "tags": [
+          "Passwords"
+        ],
+        "operationId": "checkBreach",
+        "summary": "Check a password against the Have I Been Pwned corpus (k-anonymity)",
+        "description": "Send either `password`, or a client-computed SHA-1 split into `sha1Prefix` (5 hex chars) and `sha1Suffix` (35 hex chars). Only the 5-character prefix is ever sent upstream.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BreachRequest"
+              },
+              "examples": {
+                "password": {
+                  "summary": "Plaintext password",
+                  "value": {
+                    "password": "password"
+                  }
+                },
+                "hash": {
+                  "summary": "Client-side SHA-1 of \"password\" (5BAA61E4C9B93F3F0682250B6CF8331B7EE68FD8)",
+                  "value": {
+                    "sha1Prefix": "5BAA6",
+                    "sha1Suffix": "1E4C9B93F3F0682250B6CF8331B7EE68FD8"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Breach result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BreachResponse"
+                },
+                "example": {
+                  "breached": true,
+                  "count": 52372427
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamError"
+          }
+        }
+      }
+    },
+    "/v1/validate": {
+      "post": {
+        "tags": [
+          "Passwords"
+        ],
+        "operationId": "validatePassword",
+        "summary": "Validate a password against a NIST 800-63B style policy",
+        "description": "Combines strength scoring and breach screening with length rules. Composition rules and forced expiry are deliberately not implemented, following NIST guidance.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidateRequest"
+              },
+              "example": {
+                "password": "Summer2024!",
+                "policy": {
+                  "minLength": 12
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Validation verdict.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidateResponse"
+                },
+                "example": {
+                  "valid": false,
+                  "score": 2,
+                  "breached": true,
+                  "breachCount": 3614,
+                  "violations": [
+                    "too_short",
+                    "found_in_breach"
+                  ],
+                  "feedback": {
+                    "warning": null,
+                    "suggestions": [
+                      "Add more words that are less common.",
+                      "Capitalize more than the first letter."
+                    ]
+                  },
+                  "policy": {
+                    "minLength": 12,
+                    "recommendedLength": 15,
+                    "maxLength": 64,
+                    "screenBreaches": true
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamError"
+          }
+        }
+      }
+    },
+    "/v1/generate": {
+      "post": {
+        "tags": [
+          "Passwords"
+        ],
+        "operationId": "generatePasswords",
+        "summary": "Generate passwords or passphrases from a CSPRNG",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateRequest"
+              },
+              "example": {
+                "mode": "passphrase",
+                "words": 5,
+                "separator": "-",
+                "count": 2
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Generated values.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateResponse"
+                },
+                "example": {
+                  "passwords": [
+                    "Payphone-Immodest1-Unleaded-Cornea-Slackness",
+                    "Daydream-Unjustly5-Wrinkly-Vineyard-Uplifted"
+                  ],
+                  "entropyBits": 67.94599061291628
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "Your API key, or the public demo key `pk_test_passwordify_demo`."
+      }
+    },
+    "schemas": {
+      "StrengthRequest": {
+        "type": "object",
+        "required": [
+          "password"
+        ],
+        "properties": {
+          "password": {
+            "type": "string",
+            "minLength": 1
+          },
+          "userInputs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Context words (username, email, site name) that count against the score if reused."
+          }
+        }
+      },
+      "CrackTime": {
+        "type": "object",
+        "properties": {
+          "seconds": {
+            "type": "number"
+          },
+          "display": {
+            "type": "string"
+          }
+        }
+      },
+      "Feedback": {
+        "type": "object",
+        "properties": {
+          "warning": {
+            "type": "string",
+            "nullable": true
+          },
+          "suggestions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "StrengthResponse": {
+        "type": "object",
+        "properties": {
+          "score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4
+          },
+          "guesses": {
+            "type": "number"
+          },
+          "entropyBits": {
+            "type": "number"
+          },
+          "crackTimeOfflineFast": {
+            "$ref": "#/components/schemas/CrackTime"
+          },
+          "crackTimeOnline": {
+            "$ref": "#/components/schemas/CrackTime"
+          },
+          "feedback": {
+            "$ref": "#/components/schemas/Feedback"
+          }
+        }
+      },
+      "BreachRequest": {
+        "type": "object",
+        "description": "Provide `password`, or both `sha1Prefix` and `sha1Suffix`.",
+        "properties": {
+          "password": {
+            "type": "string"
+          },
+          "sha1Prefix": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{5}$"
+          },
+          "sha1Suffix": {
+            "type": "string",
+            "pattern": "^[0-9a-fA-F]{35}$"
+          }
+        }
+      },
+      "BreachResponse": {
+        "type": "object",
+        "properties": {
+          "breached": {
+            "type": "boolean"
+          },
+          "count": {
+            "type": "integer",
+            "description": "Times the password appears in the corpus."
+          }
+        }
+      },
+      "ValidatePolicy": {
+        "type": "object",
+        "properties": {
+          "minLength": {
+            "type": "number",
+            "minimum": 0,
+            "default": 8
+          },
+          "recommendedLength": {
+            "type": "number",
+            "minimum": 0,
+            "default": 15
+          },
+          "maxLength": {
+            "type": "number",
+            "minimum": 0,
+            "default": 64
+          },
+          "screenBreaches": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "ValidateRequest": {
+        "type": "object",
+        "required": [
+          "password"
+        ],
+        "properties": {
+          "password": {
+            "type": "string",
+            "minLength": 1
+          },
+          "policy": {
+            "$ref": "#/components/schemas/ValidatePolicy"
+          }
+        }
+      },
+      "ValidateResponse": {
+        "type": "object",
+        "properties": {
+          "valid": {
+            "type": "boolean"
+          },
+          "score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4
+          },
+          "breached": {
+            "type": "boolean"
+          },
+          "breachCount": {
+            "type": "integer"
+          },
+          "violations": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "empty",
+                "too_short",
+                "too_long",
+                "found_in_breach"
+              ]
+            }
+          },
+          "feedback": {
+            "$ref": "#/components/schemas/Feedback"
+          },
+          "policy": {
+            "$ref": "#/components/schemas/ValidatePolicy"
+          }
+        }
+      },
+      "GenerateRequest": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "password",
+              "passphrase"
+            ],
+            "default": "password"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 1
+          },
+          "length": {
+            "type": "integer",
+            "minimum": 8,
+            "maximum": 128,
+            "default": 20,
+            "description": "Password mode only."
+          },
+          "lowercase": {
+            "type": "boolean",
+            "default": true
+          },
+          "uppercase": {
+            "type": "boolean",
+            "default": true
+          },
+          "numbers": {
+            "type": "boolean",
+            "default": true
+          },
+          "symbols": {
+            "type": "boolean",
+            "default": true
+          },
+          "avoidAmbiguous": {
+            "type": "boolean",
+            "default": false
+          },
+          "words": {
+            "type": "integer",
+            "minimum": 3,
+            "maximum": 12,
+            "default": 5,
+            "description": "Passphrase mode only."
+          },
+          "separator": {
+            "type": "string",
+            "default": "-",
+            "description": "Passphrase mode only."
+          },
+          "capitalize": {
+            "type": "boolean",
+            "default": true,
+            "description": "Passphrase mode only."
+          },
+          "includeNumber": {
+            "type": "boolean",
+            "default": true,
+            "description": "Passphrase mode only."
+          }
+        }
+      },
+      "GenerateResponse": {
+        "type": "object",
+        "properties": {
+          "passwords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "entropyBits": {
+            "type": "number"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "example": "missing_field"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Missing or malformed body or field (`missing_field`, `invalid_field`, `invalid_json`, `invalid_options`).",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Missing or invalid API key (`unauthorized`).",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "error": {
+                "code": "unauthorized",
+                "message": "Missing API key. Provide it via the \"X-API-Key\" header."
+              }
+            }
+          }
+        }
+      },
+      "TooManyRequests": {
+        "description": "Hourly burst limit (`rate_limited`) or monthly quota (`quota_exceeded`) exceeded.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "UpstreamError": {
+        "description": "The breach-checking service could not be reached (`upstream_error`). Safe to retry with backoff.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -50,7 +50,7 @@ const tdMono = 'px-4 py-2.5 font-mono text-ink';
         Everything you need to add real strength scoring, breach screening and
         NIST-aligned policy validation to your signup and reset flows. Every
         endpoint is a <code class="chip-mono">POST</code> request that exchanges
-        JSON — no SDK required.
+        JSON — no SDK required. Machine-readable spec: <a href="/openapi.json" class="font-medium text-accent hover:underline">OpenAPI 3 (openapi.json)</a>.
       </p>
     </div>
   </section>
@@ -166,18 +166,25 @@ const tdMono = 'px-4 py-2.5 font-mono text-ink';
             </div>
             <div class="terminal-body">
 <code><span class="tok-com"># Try it immediately with the free demo key (rate-limited)</span>
-<span class="tok-fn">curl</span> https://www.passwordify.xyz<span class="tok-str">/api/v1/strength</span> \
+<span class="tok-fn">curl</span> https://www.passwordify.xyz/api/v1/strength \
   -H <span class="tok-str">"X-API-Key: pk_test_passwordify_demo"</span> \
   -H <span class="tok-str">"Content-Type: application/json"</span> \
-  -d <span class="tok-str">'&#123;"password":"Tr0ub4dor92!"&#125;'</span>
+  -d <span class="tok-str">'&#123;"password":"Summer2024!"&#125;'</span>
 
 <span class="tok-com"># -&gt; 200 OK</span>
 <span class="tok-punc">&#123;</span>
-  <span class="tok-prop">"score"</span><span class="tok-punc">:</span> <span class="tok-num">3</span><span class="tok-punc">,</span>
-  <span class="tok-prop">"guesses"</span><span class="tok-punc">:</span> <span class="tok-num">1834729102</span><span class="tok-punc">,</span>
-  <span class="tok-prop">"entropyBits"</span><span class="tok-punc">:</span> <span class="tok-num">46.8</span><span class="tok-punc">,</span>
-  <span class="tok-prop">"crackTime"</span><span class="tok-punc">:</span> <span class="tok-str">"3 months"</span><span class="tok-punc">,</span>
-  <span class="tok-prop">"feedback"</span><span class="tok-punc">:</span> <span class="tok-punc">&#123;</span> <span class="tok-prop">"warning"</span><span class="tok-punc">:</span> <span class="tok-str">""</span><span class="tok-punc">,</span> <span class="tok-prop">"suggestions"</span><span class="tok-punc">:</span> <span class="tok-punc">[]</span> <span class="tok-punc">&#125;</span>
+  <span class="tok-prop">"score"</span><span class="tok-punc">:</span> <span class="tok-num">2</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"guesses"</span><span class="tok-punc">:</span> <span class="tok-num">10010000</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"entropyBits"</span><span class="tok-punc">:</span> <span class="tok-num">23.254938638385443</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"crackTimeOfflineFast"</span><span class="tok-punc">:</span> <span class="tok-punc">&#123;</span> <span class="tok-prop">"seconds"</span><span class="tok-punc">:</span> <span class="tok-num">0.001001</span><span class="tok-punc">,</span> <span class="tok-prop">"display"</span><span class="tok-punc">:</span> <span class="tok-str">"less than a second"</span> <span class="tok-punc">&#125;</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"crackTimeOnline"</span><span class="tok-punc">:</span> <span class="tok-punc">&#123;</span> <span class="tok-prop">"seconds"</span><span class="tok-punc">:</span> <span class="tok-num">360360000</span><span class="tok-punc">,</span> <span class="tok-prop">"display"</span><span class="tok-punc">:</span> <span class="tok-str">"11 years"</span> <span class="tok-punc">&#125;</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"feedback"</span><span class="tok-punc">:</span> <span class="tok-punc">&#123;</span>
+    <span class="tok-prop">"warning"</span><span class="tok-punc">:</span> <span class="tok-key">null</span><span class="tok-punc">,</span>
+    <span class="tok-prop">"suggestions"</span><span class="tok-punc">:</span> <span class="tok-punc">[</span>
+      <span class="tok-str">"Add more words that are less common."</span><span class="tok-punc">,</span>
+      <span class="tok-str">"Capitalize more than the first letter."</span>
+    <span class="tok-punc">]</span>
+  <span class="tok-punc">&#125;</span>
 <span class="tok-punc">&#125;</span></code>
             </div>
           </div>
@@ -199,7 +206,9 @@ const tdMono = 'px-4 py-2.5 font-mono text-ink';
           <span class="eyebrow">Limits</span>
           <h2 class="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">Rate limits</h2>
           <p class="mt-4 max-w-2xl leading-relaxed text-muted">
-            Limits apply on a rolling monthly window tied to your plan. Need more
+            Each plan has a monthly request quota, plus an hourly burst limit that
+            protects the service from runaway loops (Free 600 / Pro 6,000 requests
+            per hour; the public demo key is capped at 60 per hour). Need more
             headroom? See <a href="/pricing" class="font-medium text-accent hover:underline">pricing</a>.
           </p>
 
@@ -221,32 +230,34 @@ const tdMono = 'px-4 py-2.5 font-mono text-ink';
                 <tr>
                   <td class="px-4 py-2.5 text-ink">Pro</td>
                   <td class={tdMono}>100,000</td>
-                  <td class={td}>5 keys, email support</td>
-                </tr>
-                <tr>
-                  <td class="px-4 py-2.5 text-ink">Scale</td>
-                  <td class={tdMono}>1,000,000</td>
-                  <td class={td}>Unlimited keys, custom limits, SLA</td>
+                  <td class={td}>1 key, email support</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          <p class="mt-6 leading-relaxed text-muted">Every response includes your current usage:</p>
+          <p class="mt-6 leading-relaxed text-muted">Every response includes your current hourly burst usage:</p>
           <ul class="mt-3 space-y-2 text-sm">
             <li class="flex flex-wrap items-baseline gap-2">
               <code class="chip-mono">X-RateLimit-Limit</code>
-              <span class="text-muted">total requests allowed in the current window</span>
+              <span class="text-muted">requests allowed per hour for your plan</span>
             </li>
             <li class="flex flex-wrap items-baseline gap-2">
               <code class="chip-mono">X-RateLimit-Remaining</code>
-              <span class="text-muted">requests left before you're throttled</span>
+              <span class="text-muted">requests left in the current hourly window</span>
             </li>
             <li class="flex flex-wrap items-baseline gap-2">
               <code class="chip-mono">X-RateLimit-Reset</code>
-              <span class="text-muted">Unix timestamp when the window resets</span>
+              <span class="text-muted">seconds until the hourly window resets</span>
             </li>
           </ul>
+          <p class="mt-6 leading-relaxed text-muted">
+            Keys with a monthly quota also receive
+            <code class="chip-mono">X-Quota-Limit</code>,
+            <code class="chip-mono">X-Quota-Used</code>,
+            <code class="chip-mono">X-Quota-Remaining</code> and
+            <code class="chip-mono">X-Quota-Period</code> (the calendar month, e.g. <code class="chip-mono">202611</code>).
+          </p>
 
           <p class={label + ' mb-2 mt-6'}>Example — exceeding your quota</p>
           <div class="terminal">
@@ -257,16 +268,29 @@ const tdMono = 'px-4 py-2.5 font-mono text-ink';
               <span class="terminal-title">429-response.http</span>
             </div>
             <div class="terminal-body">
-<code><span class="tok-com"># Exceeding your plan's monthly quota</span>
-HTTP/1.1 429 Too Many Requests
-X-RateLimit-Limit: 1000
-X-RateLimit-Remaining: 0
-X-RateLimit-Reset: 1718900000
+<code><span class="tok-com"># Exceeding the hourly burst limit</span>
+HTTP/1.1 <span class="tok-num">429</span> Too Many Requests
+X-RateLimit-Limit<span class="tok-punc">:</span> <span class="tok-num">60</span>
+X-RateLimit-Remaining<span class="tok-punc">:</span> <span class="tok-num">0</span>
+X-RateLimit-Reset<span class="tok-punc">:</span> <span class="tok-num">1800</span>
 
 <span class="tok-punc">&#123;</span>
   <span class="tok-prop">"error"</span><span class="tok-punc">:</span> <span class="tok-punc">&#123;</span>
     <span class="tok-prop">"code"</span><span class="tok-punc">:</span> <span class="tok-str">"rate_limited"</span><span class="tok-punc">,</span>
-    <span class="tok-prop">"message"</span><span class="tok-punc">:</span> <span class="tok-str">"Monthly request limit exceeded. Upgrade your plan or wait for the next billing cycle."</span>
+    <span class="tok-prop">"message"</span><span class="tok-punc">:</span> <span class="tok-str">"Burst rate limit exceeded. Please slow down and try again shortly."</span>
+  <span class="tok-punc">&#125;</span>
+<span class="tok-punc">&#125;</span>
+
+<span class="tok-com"># Exceeding your plan's monthly quota</span>
+HTTP/1.1 <span class="tok-num">429</span> Too Many Requests
+X-Quota-Limit<span class="tok-punc">:</span> <span class="tok-num">1000</span>
+X-Quota-Used<span class="tok-punc">:</span> <span class="tok-num">1001</span>
+X-Quota-Remaining<span class="tok-punc">:</span> <span class="tok-num">0</span>
+
+<span class="tok-punc">&#123;</span>
+  <span class="tok-prop">"error"</span><span class="tok-punc">:</span> <span class="tok-punc">&#123;</span>
+    <span class="tok-prop">"code"</span><span class="tok-punc">:</span> <span class="tok-str">"quota_exceeded"</span><span class="tok-punc">,</span>
+    <span class="tok-prop">"message"</span><span class="tok-punc">:</span> <span class="tok-str">"Monthly quota of 1,000 requests exceeded for the Free plan. Upgrade for more headroom."</span>
   <span class="tok-punc">&#125;</span>
 <span class="tok-punc">&#125;</span></code>
             </div>
@@ -291,8 +315,8 @@ X-RateLimit-Reset: 1718900000
             <div class="terminal-body">
 <code><span class="tok-punc">&#123;</span>
   <span class="tok-prop">"error"</span><span class="tok-punc">:</span> <span class="tok-punc">&#123;</span>
-    <span class="tok-prop">"code"</span><span class="tok-punc">:</span> <span class="tok-str">"bad_request"</span><span class="tok-punc">,</span>
-    <span class="tok-prop">"message"</span><span class="tok-punc">:</span> <span class="tok-str">"Field 'password' is required."</span>
+    <span class="tok-prop">"code"</span><span class="tok-punc">:</span> <span class="tok-str">"missing_field"</span><span class="tok-punc">,</span>
+    <span class="tok-prop">"message"</span><span class="tok-punc">:</span> <span class="tok-str">"\"password\" is required and must be a non-empty string."</span>
   <span class="tok-punc">&#125;</span>
 <span class="tok-punc">&#125;</span></code>
             </div>
@@ -310,8 +334,8 @@ X-RateLimit-Reset: 1718900000
               <tbody class="divide-y divide-[var(--border)]">
                 <tr>
                   <td class={tdMono}>400</td>
-                  <td class={tdMono}>bad_request</td>
-                  <td class={td}>Missing or malformed request body</td>
+                  <td class={tdMono}>missing_field, invalid_field, invalid_json</td>
+                  <td class={td}>Missing or malformed request body or field</td>
                 </tr>
                 <tr>
                   <td class={tdMono}>401</td>
@@ -320,13 +344,13 @@ X-RateLimit-Reset: 1718900000
                 </tr>
                 <tr>
                   <td class={tdMono}>429</td>
-                  <td class={tdMono}>rate_limited</td>
-                  <td class={td}>Monthly or burst rate limit exceeded</td>
+                  <td class={tdMono}>rate_limited, quota_exceeded</td>
+                  <td class={td}>Hourly burst limit or monthly quota exceeded</td>
                 </tr>
                 <tr>
-                  <td class={tdMono}>500</td>
-                  <td class={tdMono}>internal_error</td>
-                  <td class={td}>Unexpected server error — safe to retry with backoff</td>
+                  <td class={tdMono}>502</td>
+                  <td class={tdMono}>upstream_error</td>
+                  <td class={td}>The upstream breach-check service could not be reached — safe to retry with backoff</td>
                 </tr>
               </tbody>
             </table>
@@ -393,20 +417,24 @@ X-RateLimit-Reset: 1718900000
               </div>
               <div class="terminal-body">
 <code><span class="tok-com"># Score a password as the user types</span>
-<span class="tok-fn">curl</span> https://www.passwordify.xyz<span class="tok-str">/api/v1/strength</span> \
+<span class="tok-fn">curl</span> https://www.passwordify.xyz/api/v1/strength \
   -H <span class="tok-str">"X-API-Key: pk_live_..."</span> \
   -H <span class="tok-str">"Content-Type: application/json"</span> \
-  -d <span class="tok-str">'&#123;"password":"Tr0ub4dor92!","userInputs":["emanuele","passwordify"]&#125;'</span>
+  -d <span class="tok-str">'&#123;"password":"Summer2024!","userInputs":["emanuele","passwordify"]&#125;'</span>
 
 <span class="tok-com"># -&gt; 200 OK</span>
 <span class="tok-punc">&#123;</span>
-  <span class="tok-prop">"score"</span><span class="tok-punc">:</span> <span class="tok-num">3</span><span class="tok-punc">,</span>
-  <span class="tok-prop">"guesses"</span><span class="tok-punc">:</span> <span class="tok-num">1834729102</span><span class="tok-punc">,</span>
-  <span class="tok-prop">"entropyBits"</span><span class="tok-punc">:</span> <span class="tok-num">46.8</span><span class="tok-punc">,</span>
-  <span class="tok-prop">"crackTime"</span><span class="tok-punc">:</span> <span class="tok-str">"3 months"</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"score"</span><span class="tok-punc">:</span> <span class="tok-num">2</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"guesses"</span><span class="tok-punc">:</span> <span class="tok-num">10010000</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"entropyBits"</span><span class="tok-punc">:</span> <span class="tok-num">23.254938638385443</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"crackTimeOfflineFast"</span><span class="tok-punc">:</span> <span class="tok-punc">&#123;</span> <span class="tok-prop">"seconds"</span><span class="tok-punc">:</span> <span class="tok-num">0.001001</span><span class="tok-punc">,</span> <span class="tok-prop">"display"</span><span class="tok-punc">:</span> <span class="tok-str">"less than a second"</span> <span class="tok-punc">&#125;</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"crackTimeOnline"</span><span class="tok-punc">:</span> <span class="tok-punc">&#123;</span> <span class="tok-prop">"seconds"</span><span class="tok-punc">:</span> <span class="tok-num">360360000</span><span class="tok-punc">,</span> <span class="tok-prop">"display"</span><span class="tok-punc">:</span> <span class="tok-str">"11 years"</span> <span class="tok-punc">&#125;</span><span class="tok-punc">,</span>
   <span class="tok-prop">"feedback"</span><span class="tok-punc">:</span> <span class="tok-punc">&#123;</span>
-    <span class="tok-prop">"warning"</span><span class="tok-punc">:</span> <span class="tok-str">""</span><span class="tok-punc">,</span>
-    <span class="tok-prop">"suggestions"</span><span class="tok-punc">:</span> <span class="tok-punc">[</span><span class="tok-str">"Add another word or two. Uncommon words are safer than substitutions."</span><span class="tok-punc">]</span>
+    <span class="tok-prop">"warning"</span><span class="tok-punc">:</span> <span class="tok-key">null</span><span class="tok-punc">,</span>
+    <span class="tok-prop">"suggestions"</span><span class="tok-punc">:</span> <span class="tok-punc">[</span>
+      <span class="tok-str">"Add more words that are less common."</span><span class="tok-punc">,</span>
+      <span class="tok-str">"Capitalize more than the first letter."</span>
+    <span class="tok-punc">]</span>
   <span class="tok-punc">&#125;</span>
 <span class="tok-punc">&#125;</span></code>
               </div>
@@ -440,14 +468,20 @@ X-RateLimit-Reset: 1718900000
                   <tr>
                     <td class={tdMono}>password</td>
                     <td class={td}>string</td>
-                    <td class={td}>One of password / sha1Prefix</td>
-                    <td class={td}>Plaintext password to check. Hashed and truncated to a 5-character prefix before comparison.</td>
+                    <td class={td}>One of password, or sha1Prefix + sha1Suffix</td>
+                    <td class={td}>Plaintext password to check. Hashed on our side; only a 5-character prefix is sent to the breach corpus.</td>
                   </tr>
                   <tr>
                     <td class={tdMono}>sha1Prefix</td>
                     <td class={td}>string</td>
-                    <td class={td}>One of password / sha1Prefix</td>
-                    <td class={td}>Precomputed 5-character SHA-1 prefix, for callers that hash client-side.</td>
+                    <td class={td}>With sha1Suffix</td>
+                    <td class={td}>First 5 hex characters of the SHA-1 hash, for callers that hash client-side. Send together with sha1Suffix.</td>
+                  </tr>
+                  <tr>
+                    <td class={tdMono}>sha1Suffix</td>
+                    <td class={td}>string</td>
+                    <td class={td}>With sha1Prefix</td>
+                    <td class={td}>The remaining 35 hex characters of the SHA-1 hash. Matched locally against the range returned for the prefix.</td>
                   </tr>
                 </tbody>
               </table>
@@ -462,17 +496,24 @@ X-RateLimit-Reset: 1718900000
                 <span class="terminal-title">breach.sh</span>
               </div>
               <div class="terminal-body">
-<code><span class="tok-com"># "5BAA6" is the SHA-1 prefix of the word "password" — always breached</span>
-<span class="tok-fn">curl</span> https://www.passwordify.xyz<span class="tok-str">/api/v1/breach</span> \
+<code><span class="tok-com"># Check a plaintext password (hashed on our side; only a 5-char prefix goes upstream)</span>
+<span class="tok-fn">curl</span> https://www.passwordify.xyz/api/v1/breach \
   -H <span class="tok-str">"X-API-Key: pk_live_..."</span> \
   -H <span class="tok-str">"Content-Type: application/json"</span> \
-  -d <span class="tok-str">'&#123;"sha1Prefix":"5BAA6"&#125;'</span>
+  -d <span class="tok-str">'&#123;"password":"password"&#125;'</span>
 
-<span class="tok-com"># -&gt; 200 OK</span>
+<span class="tok-com"># -&gt; 200 OK  (the count changes as the corpus grows)</span>
 <span class="tok-punc">&#123;</span>
   <span class="tok-prop">"breached"</span><span class="tok-punc">:</span> <span class="tok-key">true</span><span class="tok-punc">,</span>
-  <span class="tok-prop">"count"</span><span class="tok-punc">:</span> <span class="tok-num">9545824</span>
-<span class="tok-punc">&#125;</span></code>
+  <span class="tok-prop">"count"</span><span class="tok-punc">:</span> <span class="tok-num">52372427</span>
+<span class="tok-punc">&#125;</span>
+
+<span class="tok-com"># Or hash client-side and send the SHA-1 split into prefix (5) + suffix (35):</span>
+<span class="tok-com"># SHA-1("password") = 5BAA61E4C9B93F3F0682250B6CF8331B7EE68FD8</span>
+<span class="tok-fn">curl</span> https://www.passwordify.xyz/api/v1/breach \
+  -H <span class="tok-str">"X-API-Key: pk_live_..."</span> \
+  -H <span class="tok-str">"Content-Type: application/json"</span> \
+  -d <span class="tok-str">'&#123;"sha1Prefix":"5BAA6","sha1Suffix":"1E4C9B93F3F0682250B6CF8331B7EE68FD8"&#125;'</span></code>
               </div>
             </div>
           </div>
@@ -513,9 +554,9 @@ X-RateLimit-Reset: 1718900000
                     <td class={td}>No</td>
                     <td class={td}>
                       Overrides for <code class="chip-mono">minLength</code> (default 8),
-                      <code class="chip-mono">maxLength</code> (default 64),
-                      <code class="chip-mono">minScore</code> (default 2, 0–4), and
-                      <code class="chip-mono">blockBreached</code> (default true).
+                      <code class="chip-mono">recommendedLength</code> (default 15),
+                      <code class="chip-mono">maxLength</code> (default 64), and
+                      <code class="chip-mono">screenBreaches</code> (default true).
                     </td>
                   </tr>
                 </tbody>
@@ -532,18 +573,31 @@ X-RateLimit-Reset: 1718900000
               </div>
               <div class="terminal-body">
 <code><span class="tok-com"># Screen a password at signup — strength + breach + policy</span>
-<span class="tok-fn">curl</span> https://www.passwordify.xyz<span class="tok-str">/api/v1/validate</span> \
+<span class="tok-fn">curl</span> https://www.passwordify.xyz/api/v1/validate \
   -H <span class="tok-str">"X-API-Key: pk_live_..."</span> \
   -H <span class="tok-str">"Content-Type: application/json"</span> \
-  -d <span class="tok-str">'&#123;"password":"Summer2024!","policy":&#123;"minLength":12,"minScore":3&#125;&#125;'</span>
+  -d <span class="tok-str">'&#123;"password":"Summer2024!","policy":&#123;"minLength":12&#125;&#125;'</span>
 
-<span class="tok-com"># -&gt; 200 OK</span>
+<span class="tok-com"># -&gt; 200 OK  (breachCount changes as the corpus grows)</span>
 <span class="tok-punc">&#123;</span>
   <span class="tok-prop">"valid"</span><span class="tok-punc">:</span> <span class="tok-key">false</span><span class="tok-punc">,</span>
   <span class="tok-prop">"score"</span><span class="tok-punc">:</span> <span class="tok-num">2</span><span class="tok-punc">,</span>
   <span class="tok-prop">"breached"</span><span class="tok-punc">:</span> <span class="tok-key">true</span><span class="tok-punc">,</span>
-  <span class="tok-prop">"breachCount"</span><span class="tok-punc">:</span> <span class="tok-num">3529</span><span class="tok-punc">,</span>
-  <span class="tok-prop">"violations"</span><span class="tok-punc">:</span> <span class="tok-punc">[</span><span class="tok-str">"min_length"</span><span class="tok-punc">,</span> <span class="tok-str">"found_in_breach"</span><span class="tok-punc">]</span>
+  <span class="tok-prop">"breachCount"</span><span class="tok-punc">:</span> <span class="tok-num">3614</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"violations"</span><span class="tok-punc">:</span> <span class="tok-punc">[</span><span class="tok-str">"too_short"</span><span class="tok-punc">,</span> <span class="tok-str">"found_in_breach"</span><span class="tok-punc">]</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"feedback"</span><span class="tok-punc">:</span> <span class="tok-punc">&#123;</span>
+    <span class="tok-prop">"warning"</span><span class="tok-punc">:</span> <span class="tok-key">null</span><span class="tok-punc">,</span>
+    <span class="tok-prop">"suggestions"</span><span class="tok-punc">:</span> <span class="tok-punc">[</span>
+      <span class="tok-str">"Add more words that are less common."</span><span class="tok-punc">,</span>
+      <span class="tok-str">"Capitalize more than the first letter."</span>
+    <span class="tok-punc">]</span>
+  <span class="tok-punc">&#125;</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"policy"</span><span class="tok-punc">:</span> <span class="tok-punc">&#123;</span>
+    <span class="tok-prop">"minLength"</span><span class="tok-punc">:</span> <span class="tok-num">12</span><span class="tok-punc">,</span>
+    <span class="tok-prop">"recommendedLength"</span><span class="tok-punc">:</span> <span class="tok-num">15</span><span class="tok-punc">,</span>
+    <span class="tok-prop">"maxLength"</span><span class="tok-punc">:</span> <span class="tok-num">64</span><span class="tok-punc">,</span>
+    <span class="tok-prop">"screenBreaches"</span><span class="tok-punc">:</span> <span class="tok-key">true</span>
+  <span class="tok-punc">&#125;</span>
 <span class="tok-punc">&#125;</span></code>
               </div>
             </div>
@@ -589,7 +643,7 @@ X-RateLimit-Reset: 1718900000
                     <td class={tdMono}>count</td>
                     <td class={td}>number</td>
                     <td class={td}>No</td>
-                    <td class={td}>Number of results to return. Default 1, max 50.</td>
+                    <td class={td}>Number of results to return. Default 1, max 100.</td>
                   </tr>
                   <tr>
                     <td class={tdMono}>lowercase</td>
@@ -625,13 +679,25 @@ X-RateLimit-Reset: 1718900000
                     <td class={tdMono}>words</td>
                     <td class={td}>number</td>
                     <td class={td}>No</td>
-                    <td class={td}>Word count in passphrase mode. Default 5 (~64.5 bits at 12.9 bits/word).</td>
+                    <td class={td}>Word count in passphrase mode (3–12). Default 5.</td>
                   </tr>
                   <tr>
                     <td class={tdMono}>separator</td>
                     <td class={td}>string</td>
                     <td class={td}>No</td>
                     <td class={td}>Separator between words in passphrase mode. Default "-".</td>
+                  </tr>
+                  <tr>
+                    <td class={tdMono}>capitalize</td>
+                    <td class={td}>boolean</td>
+                    <td class={td}>No</td>
+                    <td class={td}>Capitalize each word in passphrase mode. Default true.</td>
+                  </tr>
+                  <tr>
+                    <td class={tdMono}>includeNumber</td>
+                    <td class={td}>boolean</td>
+                    <td class={td}>No</td>
+                    <td class={td}>Append one random digit to one word in passphrase mode. Default true.</td>
                   </tr>
                 </tbody>
               </table>
@@ -647,15 +713,18 @@ X-RateLimit-Reset: 1718900000
               </div>
               <div class="terminal-body">
 <code><span class="tok-com"># A memorable diceware passphrase, two variants</span>
-<span class="tok-fn">curl</span> https://www.passwordify.xyz<span class="tok-str">/api/v1/generate</span> \
+<span class="tok-fn">curl</span> https://www.passwordify.xyz/api/v1/generate \
   -H <span class="tok-str">"X-API-Key: pk_live_..."</span> \
   -H <span class="tok-str">"Content-Type: application/json"</span> \
   -d <span class="tok-str">'&#123;"mode":"passphrase","words":5,"separator":"-","count":2&#125;'</span>
 
-<span class="tok-com"># -&gt; 200 OK</span>
+<span class="tok-com"># -&gt; 200 OK  (output is random — yours will differ)</span>
 <span class="tok-punc">&#123;</span>
-  <span class="tok-prop">"passwords"</span><span class="tok-punc">:</span> <span class="tok-punc">[</span><span class="tok-str">"glacier-anchor-mural-triangle-woven"</span><span class="tok-punc">,</span> <span class="tok-str">"pebble-orchard-drift-lantern-cove"</span><span class="tok-punc">]</span><span class="tok-punc">,</span>
-  <span class="tok-prop">"entropyBits"</span><span class="tok-punc">:</span> <span class="tok-num">64.5</span>
+  <span class="tok-prop">"passwords"</span><span class="tok-punc">:</span> <span class="tok-punc">[</span>
+    <span class="tok-str">"Payphone-Immodest1-Unleaded-Cornea-Slackness"</span><span class="tok-punc">,</span>
+    <span class="tok-str">"Daydream-Unjustly5-Wrinkly-Vineyard-Uplifted"</span>
+  <span class="tok-punc">]</span><span class="tok-punc">,</span>
+  <span class="tok-prop">"entropyBits"</span><span class="tok-punc">:</span> <span class="tok-num">67.94599061291628</span>
 <span class="tok-punc">&#125;</span></code>
               </div>
             </div>

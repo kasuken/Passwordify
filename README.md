@@ -38,7 +38,7 @@ developers who need NIST 800-63B-aligned password logic without writing it thems
 - **`POST /v1/generate`** — server-side CSPRNG password and passphrase generation with full
   character-set and passphrase controls.
 
-Every endpoint is stateless JSON over HTTPS, authenticated with a bearer API key, and returns
+Every endpoint is stateless JSON over HTTPS, authenticated with an API key sent in the `X-API-Key` header, and returns
 structured `{error:{code,message}}` bodies with correct HTTP status codes.
 
 ## Screenshots
@@ -146,7 +146,7 @@ npm start          # builds (tsc) and runs `func start`
 For local testing without issuing yourself a real key, use the demo key:
 
 ```
-Authorization: Bearer pk_test_passwordify_demo
+X-API-Key: pk_test_passwordify_demo
 ```
 
 ## Deployment
