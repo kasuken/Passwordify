@@ -37,9 +37,8 @@ export async function portalHandler(request: HttpRequest, context: InvocationCon
     });
     return json(200, { url: session.url });
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Stripe request failed.';
     context.error('Stripe billing portal failed', err);
-    return errorResponse(502, 'stripe_error', message);
+    return errorResponse(502, 'stripe_error', 'We could not reach the billing provider. Please try again in a moment.');
   }
 }
 

@@ -43,7 +43,7 @@ function parsePolicyOptions(raw: unknown): PolicyOptions | { error: string } {
   return options;
 }
 
-export async function validateHandler(request: HttpRequest, _context: InvocationContext): Promise<HttpResponseInit> {
+export async function validateHandler(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   if (request.method === 'OPTIONS') {
     return preflightResponse();
   }
@@ -80,10 +80,11 @@ export async function validateHandler(request: HttpRequest, _context: Invocation
       breached = breachResult.breached;
       breachCount = breachResult.count;
     } catch (err) {
+      context.warn('Breach lookup failed', err);
       return errorResponse(
         502,
         'upstream_error',
-        `Failed to reach the breach-checking service: ${err instanceof Error ? err.message : String(err)}`,
+        'The breach-checking service is temporarily unavailable. Please retry shortly.',
         rlHeaders
       );
     }

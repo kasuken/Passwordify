@@ -13,8 +13,8 @@ export default defineConfig({
   integrations: [
     react(),
     sitemap({
-      // Keep transactional / post-payment dead-ends out of the index.
-      filter: (page) => !page.includes('/checkout/'),
+      // Keep transactional / post-payment dead-ends and the signed-in dashboard out of the index.
+      filter: (page) => !page.includes('/checkout/') && !page.includes('/dashboard'),
     }),
   ],
   vite: {

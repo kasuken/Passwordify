@@ -47,7 +47,8 @@ export async function checkoutHandler(request: HttpRequest, context: InvocationC
   try {
     priceId = priceIdFor(interval);
   } catch (err) {
-    return errorResponse(503, 'price_unconfigured', err instanceof Error ? err.message : 'Price not configured.');
+    context.error('Stripe price not configured', err);
+    return errorResponse(503, 'price_unconfigured', 'Billing is not available right now. Please try again later.');
   }
 
   const stripe = getStripe();
@@ -79,11 +80,10 @@ export async function checkoutHandler(request: HttpRequest, context: InvocationC
 
     return json(200, { url: session.url });
   } catch (err) {
-    // Surface the real Stripe reason (bad key scope, test/live mismatch,
-    // missing price, etc.) instead of a generic failure.
-    const message = err instanceof Error ? err.message : 'Stripe request failed.';
+    // Log the real Stripe reason server-side (bad key scope, test/live mismatch,
+    // missing price, etc.); never pass upstream error text to the client.
     context.error('Stripe checkout failed', err);
-    return errorResponse(502, 'stripe_error', message);
+    return errorResponse(502, 'stripe_error', 'We could not reach the billing provider. Please try again in a moment.');
   }
 }
 

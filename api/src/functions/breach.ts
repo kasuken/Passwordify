@@ -12,7 +12,7 @@ interface BreachRequestBody {
 const HEX_PREFIX_RE = /^[0-9a-fA-F]{5}$/;
 const HEX_SUFFIX_RE = /^[0-9a-fA-F]{35}$/;
 
-export async function breachHandler(request: HttpRequest, _context: InvocationContext): Promise<HttpResponseInit> {
+export async function breachHandler(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
   if (request.method === 'OPTIONS') {
     return preflightResponse();
   }
@@ -63,10 +63,11 @@ export async function breachHandler(request: HttpRequest, _context: InvocationCo
     const result = await checkBreachByPrefix(prefix, suffix);
     return json(200, result, rlHeaders);
   } catch (err) {
+    context.warn('Breach lookup failed', err);
     return errorResponse(
       502,
       'upstream_error',
-      `Failed to reach the breach-checking service: ${err instanceof Error ? err.message : String(err)}`,
+      'The breach-checking service is temporarily unavailable. Please retry shortly.',
       rlHeaders
     );
   }
