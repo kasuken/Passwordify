@@ -14,7 +14,7 @@ first, then repeat in Live mode.
 
 1. Stripe Dashboard → **Product catalog → Add product**
    - **Name:** `Passwordify Pro`
-   - **Description:** `100,000 API requests/mo, 5 API keys, higher burst limits, email support.`
+   - **Description:** `100,000 API requests/mo, higher burst limits, email support.`
 2. Add **two prices** to that product (both **Recurring**):
 
    | Price | Amount | Billing period | Notes |

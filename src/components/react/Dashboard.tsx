@@ -317,7 +317,7 @@ export default function Dashboard() {
           ) : (
             <>
               <p className="mt-2 text-sm text-muted">
-                Upgrade to Pro for 100,000 requests/mo, 5 keys, and higher burst limits.
+                Upgrade to Pro for 100,000 requests/mo and higher burst limits.
               </p>
               <div className="mt-4 flex flex-wrap gap-3">
                 <button type="button" onClick={() => startCheckout('monthly')} disabled={busy === 'checkout'} className="btn btn-primary">

@@ -24,7 +24,7 @@ export interface PlanConfig {
 export const PLANS: Record<PlanId, PlanConfig> = {
   demo: { id: 'demo', label: 'Demo', monthlyQuota: 1_000, maxKeys: 0, burstPerHour: 60 },
   free: { id: 'free', label: 'Free', monthlyQuota: 1_000, maxKeys: 1, burstPerHour: 600 },
-  pro: { id: 'pro', label: 'Pro', monthlyQuota: 100_000, maxKeys: 5, burstPerHour: 6_000 },
+  pro: { id: 'pro', label: 'Pro', monthlyQuota: 100_000, maxKeys: 1, burstPerHour: 6_000 },
 };
 
 export function planConfig(plan: PlanId): PlanConfig {
